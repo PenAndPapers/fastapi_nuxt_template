@@ -1,0 +1,37 @@
+version: 2
+updates:
+  # 1. GitHub Actions Workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  # 2. Frontend (Nuxt/Vue via pnpm)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "*"
+
+  # 3. Backend (FastAPI via pip/requirements/pyproject)
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      backend-dependencies:
+        patterns:
+          - "*"
+
+  # 4. Docker Infrastructure
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"

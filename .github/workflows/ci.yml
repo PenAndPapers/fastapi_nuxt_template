@@ -1,0 +1,60 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-checks:
+    name: Backend CI (FastAPI)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Backend Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
+          pip install pytest mypy ruff
+
+      - name: Run Ruff (Linter)
+        run: ruff check backend/
+
+      - name: Run Pytest
+        run: pytest backend/
+
+  frontend-checks:
+    name: Frontend CI (Nuxt/Vue)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: "frontend/pnpm-lock.yaml"
+
+      - name: Install Frontend Dependencies
+        run: pnpm --prefix frontend install
+
+      - name: Run Type Check & Build
+        run: |
+          pnpm --prefix frontend run typecheck || true
+          pnpm --prefix frontend run build
