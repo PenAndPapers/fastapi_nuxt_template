@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow_commands": [
+      "pnpm test",
+      "pnpm lint",
+      "pytest"
+    ]
+  }
+}
