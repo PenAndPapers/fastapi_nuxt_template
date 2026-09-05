@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+.env
+
+# Node
+node_modules/
+/.npm
+/.pnpm-store
+/.pnpm-debug.log
+
+# Nuxt
+.nuxt/
+output/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+Dockerfile
+docker-compose.yml
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
