@@ -1,33 +1,22 @@
 ---
 alwaysApply: false
-description: TODO: add description
+description: Standards for Vue 3, Nuxt, TypeScript, and UI component architecture.
 globs:
-  - "TODO: add frontend globs"
+  - "frontend/nuxt/**/*.vue"
+  - "frontend/nuxt/**/*.ts"
+  - "frontend/nuxt/**/*.js"
+  - "frontend/nuxt/**/*.css"
+  - "frontend/nuxt/**/*.scss"
 ---
 
-# Frontend Development Rules & Standards
+# Frontend Rules (Vue 3 / Nuxt)
 
-## 1. Core Stack Standards
-- TODO: add core stack standards
+## Component Architecture
+- Build UI components using **Vue 3 Composition API** (`<script setup lang="ts">`).
+- Keep components modular and single-purpose; extract reusable UI parts.
+- Use local component state where possible; reserve **Pinia** for state shared across multiple routes.
+- Follow test-driven development (TDD) practices for unit testing.
 
----
-
-## 2. Vue & Nuxt Architecture
-
-### Component Standards
-- TODO: add component standards
-
-### Props, Emits & Reactivity
-- Use macro type definitions for props and emits:
-  ```typescript
-  TODO: add code sample
-  ```
-
-### API Integration
-- TODO: add api integration standards
-
-### Type Safety & Forms
-- TODO: add type safety & forms standards
-
-### Auth & Tokens
-- TODO: add auth & tokens standards
+## API Integration & Typing
+- Fetch data using Nuxt composables (`useFetch`, `useAsyncData`).
+- Ensure all API response objects explicitly match backend Pydantic DTO interface types.

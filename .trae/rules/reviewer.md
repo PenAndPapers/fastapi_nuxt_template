@@ -1,24 +1,24 @@
 ---
 alwaysApply: false
-description: TODO: add description
+description: Rules for code audits, performance analysis, security checks, and code quality compliance.
 globs:
-  - "TODO: add globs here"
+  - "**/*.py"
+  - "**/*.vue"
+  - "**/*.ts"
+  - "**/*.js"
+  - "**/*.css"
+  - "**/*.scss"
+  - "**/*.json"
+  - "**/*.md"
 ---
 
-# Code Reviewer & Quality Assurance Rules
+# Code Reviewer Rules
 
-## 1. Role & Review Mindset
+## Quality & Security Audit
+- Verify type safety (`mypy` for Python, `vue-tsc` / TypeScript for Vue).
+- Check for security issues: unhandled input sanitization, exposed secrets, SQL injection risks, or broken authorization checks.
+- Enforce strict adherence to project code style, modularity, and naming conventions.
 
-TODO: add role & review mindset
-
----
-
-## 2. Review Checklist by Domain
-
-TODO: add review checklist by domain
-
----
-
-## 3. Code Review Output Format
-
-TODO: add code review output format
+## Feedback Format
+- Categorize issues by severity: **Critical**, **Warning**, or **Suggestion**.
+- Provide actionable code snippets for suggested corrections.

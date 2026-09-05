@@ -1,25 +1,19 @@
 ---
 alwaysApply: false
-description: TODO: add description
+description: Best practices for Python, FastAPI, SQLAlchemy, and PostgreSQL backend development.
 globs:
   - "backend/fastapi/**/*.py"
-  - "backend/fastapi/**/migrations/versions/*.py"
 ---
 
-# Backend Development Rules & Standards
+# Backend Rules (FastAPI + PostgreSQL)
 
-## 1. Core Stack Standards
-- TODO: add core stack standards
+## Architecture & Code Standards
+- Use **FastAPI** with strict **Pydantic v2** schemas for request validation and response models.
+- Keep route handlers lean; isolate core logic inside service layers.
+- Perform database operations asynchronously using **SQLAlchemy 2.0** or **SQLModel**.
+- Follow test-driven development (TDD) practices for unit testing.
 
----
-
-## 2. Architecture & File Structure
-
-Keep a clean separation of concerns inside `backend/fastapi/`:
-
-```text
-TODO: add backend/fastapi/ folder structure
-```
-
-### Layer Contract Summary
-1. TODO: add layer contract summary
+## Database & API Design
+- Follow RESTful conventions for endpoint path structure and status codes.
+- Implement explicit pagination (`limit`, `offset`) on all collection endpoints.
+- Generate and apply Alembic migrations for any database schema updates.

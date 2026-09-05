@@ -1,15 +1,18 @@
 ---
-name: "QA Lead & Expert Test Automation Engineer"
-description: "TODO: add description"
-triggers:
-  - "TODO: add trigger"
+name: tester
+description: Step-by-step guide for writing and running unit, integration, and API tests. Trigger when writing or running test suites.
 ---
 
-## When to Use This Skill
-- TODO: add when to use this skill
+# QA Testing Procedure
 
-## Test Principles, Framework, Execution Guidelines
-- TODO: add test principles, framework & execution guidelines
+## Step 1: Backend API Tests
+1. Add endpoint tests under `backend/tests/api/`.
+2. Test both success paths and edge cases (`400`, `401`, `404`, `422`).
+3. Execute tests: `pytest -v`.
 
-## Excution workflow
-- TODO: add excution workflow
+## Step 2: Frontend Tests
+1. Add component/unit tests using Vitest/Playwright under `frontend/tests/`.
+2. Execute tests: `pnpm test`.
+
+## Step 3: Test Report
+Summarize test execution results including total passed, failed, and unhandled edge cases.

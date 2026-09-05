@@ -1,32 +1,19 @@
 ---
 alwaysApply: false
-description: TODO: add description
+description: Guidelines for unit testing, API test suites, and end-to-end testing setups.
 globs:
-  - "TODO: add globs here"
+  - "**/tests/**/*.py"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
 ---
 
-# Test Engineering & Quality Assurance Rules
+# Tester Rules (QA & Automation)
 
-## 1. Role & QA Strategy
+## Test Coverage Standards
+- Write automated tests for all core business logic and new API endpoints.
+- Test happy paths alongside edge cases (`400 Bad Request`, `401 Unauthorized`, `404 Not Found`, `422 Validation Error`).
 
-TODO: add role & qa strategy
-
----
-
-## 2. Backend Testing Rules (`backend/fastapi/`)
-
-- TODO: add backend testing rules
-
----
-
-## 3. Frontend Testing Rules (`frontend/nuxt4/`)
-
-- TODO: add frontend testing rules
-
----
-
-## 4. Project Commands — Run Tests Inside Containers or Host
-Always prefer the project-provided Make targets so CI and dev use the same invocation:
-```make
-TODO: add project commands
-```
+## Execution Commands
+- **Backend Tests:** `pytest -v`
+- **Frontend / Integration Tests:** `pnpm test`
+- Ensure mock fixtures accurately reflect production database models and schemas.
