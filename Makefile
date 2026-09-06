@@ -108,36 +108,6 @@ frontend-clean: ## Remove generated Nuxt artifacts + node_modules
 # ========================================================
 # Backend commands (delegated to backend/fastapi/Makefile)
 # ========================================================
-backend-check: # Verify that docker is installed and uv are available (fail-fast)
-	@if [ ! -f $(BACKEND_DIR)/Makefile ]; then \
-		echo "$(_ERR)❌ $(BACKEND_DIR)/Makefile not found$(_RESET)"; \
-		exit 1; \
-	fi
-	@cd $(BACKEND_DIR) && make setup
-
-backend-dev: backend-check ## Refer to backend/fastapi/Makefile commands for dev server
-	@cd $(BACKEND_DIR) && make dev
-
-backend-update-deps: backend-check ## Refer to backend/fastapi/Makefile commands for updating dependencies
-	@cd $(BACKEND_DIR) && make update-deps
-
-backend-lint-fix: backend-check ## Refer to backend/fastapi/Makefile commands for linting
-	@cd $(BACKEND_DIR) && make lint-fix
-
-backend-test: backend-check ## Refer to backend/fastapi/Makefile commands for testing
-	@cd $(BACKEND_DIR) && make test
-
-backend-test-watch: backend-check ## Refer to backend/fastapi/Makefile commands for testing with watch
-	@cd $(BACKEND_DIR) && make test-watch
-
-backend-migrate-create: backend-check ## Refer to backend/fastapi/Makefile commands for creating migrations
-	@cd $(BACKEND_DIR) && make migrate-create
-
-backend-migrate-up: backend-check ## Refer to backend/fastapi/Makefile commands for applying migrations
-	@cd $(BACKEND_DIR) && make migrate-up
-
-backend-migrate-down: backend-check ## Refer to backend/fastapi/Makefile commands for rolling back migrations
-	@cd $(BACKEND_DIR) && make migrate-down
 
 backend-clean:
 	@cd $(BACKEND_DIR) && make clean
@@ -145,6 +115,7 @@ backend-clean:
 # ========================================================
 # Project setup
 # ========================================================
+
 setup-frontend: frontend-prepare ## Full first-run frontend setup: check → install → prepare
 	@echo -e "$(_OK)✅ Frontend setup complete. Run 'make frontend-dev' to start the dev server.$(_RESET)"
 

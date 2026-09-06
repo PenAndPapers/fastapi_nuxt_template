@@ -5,63 +5,38 @@ PY := PYTHONDONTWRITEBYTECODE=1 uv run
 
 .PHONY: setup install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down db-shell clean docker-build docker-run docker-test docker-shell docker-clean
 
-setup: install env-copy
-	@echo ""
-	@echo "✅✅ Backend setup complete ✅✅"
-	@echo "   Next steps:"
-	@echo "   1. Update .env with your PostgreSQL credentials"
-	@echo "   2. Run 'make migrate-up' to apply migrations"
-	@echo "   3. Run 'make dev' to start the dev server"
+setup:
+	# TODO: Add setup steps here
 
 install:
-	@echo ""
-	@echo "💻 Installing dependencies with uv..."
-	@echo ""
-	uv sync --all-groups
-	@echo ""
-	@echo "✅ Dependencies installed successfully"
-	@echo ""
-
-env-copy:
-	@if [ ! -f .env ]; then \
-		cp .env.example .env; \
-		echo "✅ Copied .env.example -> .env"; \
-	else \
-		echo "⚠️ .env already exists, skipping copy"; \
-	fi
+	# TODO: Add install steps here
 
 update-deps:
-	@echo "💻 Updating and syncing all dependencies..."
-	uv lock --upgrade && uv sync --all-groups
-	@echo "✅ Dependencies updated successfully"
-
-dev:
-	$(PY) uvicorn main:app --reload --host 0.0.0.0 --port 8000
+	# TODO: Add update-deps steps here
 
 lint:
-	$(PY) ruff check .
+	# TODO: Add lint steps here
 
 lint-fix:
-	$(PY) ruff check --fix .
-	$(PY) ruff format .
+	# TODO: Add lint-fix steps here
 
 test:
-	$(PY) pytest tests -v
+	# TODO: Add test steps here
 
 test-watch:
-	$(PY) pytest tests -v --watch
+	# TODO: Add test-watch steps here
 
 migrate-create:
-	$(PY) alembic revision --autogenerate -m "$(msg)"
+	# TODO: Add migrate-create steps here
 
 migrate-up:
-	$(PY) alembic upgrade head
+	# TODO: Add migrate-up steps here
 
 migrate-down:
-	$(PY) alembic downgrade -1
+	# TODO: Add migrate-down steps here
 
 db-shell:
-	$(PY) python -c "from core.database import SessionLocal; db = SessionLocal(); print('Connected. Use `db` session.')"
+	# TODO: Add db-shell steps here
 
 clean:
 	@echo ""
@@ -77,6 +52,7 @@ clean:
 # --------------------------------------------------------------------
 # Docker targets (run inside container via docker compose)
 # --------------------------------------------------------------------
+
 docker-build: ## Build backend Docker image
 	@echo "▶ Building backend Docker image..."
 	@docker compose build backend
