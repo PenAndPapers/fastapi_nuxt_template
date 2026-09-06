@@ -5,8 +5,6 @@ PY := PYTHONDONTWRITEBYTECODE=1 uv run
 
 .PHONY: setup install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down db-shell clean docker-build docker-run docker-test docker-shell docker-clean
 
-setup:
-	# TODO: Add setup steps here
 
 install:
 	# TODO: Add install steps here
@@ -35,8 +33,6 @@ migrate-up:
 migrate-down:
 	# TODO: Add migrate-down steps here
 
-db-shell:
-	# TODO: Add db-shell steps here
 
 clean:
 	@echo ""
