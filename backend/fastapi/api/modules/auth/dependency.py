@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from core.database import DatabaseDep
+
 from .repo import AuthRepository
 from .service import AuthService
 

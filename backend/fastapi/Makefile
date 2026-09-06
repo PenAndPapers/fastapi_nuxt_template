@@ -3,35 +3,38 @@ export PYTHONDONTWRITEBYTECODE
 
 PY := PYTHONDONTWRITEBYTECODE=1 uv run
 
-.PHONY: setup install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down db-shell clean docker-build docker-run docker-test docker-shell docker-clean
+.PHONY: setup install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down migrate-logs migrate-check db-shell clean docker-build docker-run docker-test docker-shell docker-clean
 
 
 install:
-	# TODO: Add install steps here
+	uv sync
 
 update-deps:
-	# TODO: Add update-deps steps here
+	uv lock --upgrade
+	uv sync
 
 lint:
-	# TODO: Add lint steps here
+	uv run ruff check .
 
 lint-fix:
-	# TODO: Add lint-fix steps here
-
-test:
-	# TODO: Add test steps here
-
-test-watch:
-	# TODO: Add test-watch steps here
+	uv run ruff check . --fix
+	uv run ruff format .
 
 migrate-create:
-	# TODO: Add migrate-create steps here
+	@read -p "Enter migration message: " msg && \
+	uv run alembic revision --autogenerate -m "$$msg"
 
 migrate-up:
-	# TODO: Add migrate-up steps here
+	uv run alembic upgrade head
 
 migrate-down:
-	# TODO: Add migrate-down steps here
+	uv run alembic downgrade -1
+
+migrate-logs:
+	uv run alembic history --verbose
+
+migrate-check:
+	uv run alembic check
 
 
 clean:

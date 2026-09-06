@@ -1,4 +1,4 @@
-from typing import List
+
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,7 +17,7 @@ class User(AppBaseModel):
     phone_number: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Many-to-Many relationship to Role via UserRole
-    roles: Mapped[List["Role"]] = relationship(
+    roles: Mapped[list["Role"]] = relationship(
         secondary="user_roles", back_populates="users", lazy="selectin"
     )
 
@@ -41,8 +41,8 @@ class Role(AppBaseModel):
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Relationships
-    users: Mapped[List["User"]] = relationship(secondary="user_roles", back_populates="roles")
-    permissions: Mapped[List["Permission"]] = relationship(
+    users: Mapped[list["User"]] = relationship(secondary="user_roles", back_populates="roles")
+    permissions: Mapped[list["Permission"]] = relationship(
         secondary="role_permissions", back_populates="roles", lazy="selectin"
     )
 
@@ -67,6 +67,6 @@ class Permission(AppBaseModel):
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Relationship back to Role
-    roles: Mapped[List["Role"]] = relationship(
+    roles: Mapped[list["Role"]] = relationship(
         secondary="role_permissions", back_populates="permissions"
     )

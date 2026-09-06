@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, Field
 from modules.user.schema import UserCreateSchema
+from pydantic import BaseModel, EmailStr, Field
 
 
 class AuthRegisterSchema(UserCreateSchema):

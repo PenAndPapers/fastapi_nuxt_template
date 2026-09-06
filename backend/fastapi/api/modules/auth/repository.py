@@ -1,4 +1,5 @@
 from core.database import DatabaseDep
+
 from .model import Auth
 
 

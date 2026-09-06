@@ -1,5 +1,4 @@
-import hashlib
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import BigInteger, ForeignKey, Index, String
