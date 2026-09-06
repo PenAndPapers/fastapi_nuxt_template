@@ -12,7 +12,11 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,vue,json,md,css,scss}\"",
-    "format:check": "prettier --check \"**/*.{ts,vue,json,md,css,scss}\""
+    "format:check": "prettier --check \"**/*.{ts,vue,json,md,css,scss}\"",
+    "test": "pnpm run test:unit",
+    "test:unit": "pnpm run test:unit",
+    "test:e2e": "pnpm run test:e2e",
+    "test:e2e:docker": "docker compose exec frontend pnpm run test:e2e"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.0",

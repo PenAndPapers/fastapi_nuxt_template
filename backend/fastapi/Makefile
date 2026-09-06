@@ -3,7 +3,7 @@ export PYTHONDONTWRITEBYTECODE
 
 PY := PYTHONDONTWRITEBYTECODE=1 uv run
 
-.PHONY: setup install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down db-shell clean
+.PHONY: setup install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down db-shell clean docker-build docker-run docker-test docker-shell docker-clean
 
 setup: install env-copy
 	@echo ""
@@ -73,3 +73,30 @@ clean:
 	@echo ""
 	@echo "✅ Backend artifacts cleaned successfully"
 	@echo ""
+
+# --------------------------------------------------------------------
+# Docker targets (run inside container via docker compose)
+# --------------------------------------------------------------------
+docker-build: ## Build backend Docker image
+	@echo "▶ Building backend Docker image..."
+	@docker compose build backend
+	@echo "✅ Backend Docker image built."
+
+docker-run: ## Run backend in Docker (detached)
+	@echo "▶ Starting backend container..."
+	@docker compose up -d backend
+	@echo "✅ Backend container started on http://localhost:8000"
+
+docker-test: ## Run backend tests in Docker
+	@echo "▶ Running backend tests in Docker..."
+	@docker compose exec backend python -m pytest tests -v
+	@echo "✅ Backend tests completed."
+
+docker-shell: ## Open shell in backend container
+	@echo "▶ Opening shell in backend container..."
+	@docker compose exec backend /bin/bash
+
+docker-clean: ## Stop and remove backend container
+	@echo "▶ Stopping backend container..."
+	@docker compose down backend
+	@echo "✅ Backend container stopped."
