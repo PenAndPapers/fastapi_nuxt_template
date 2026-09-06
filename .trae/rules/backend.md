@@ -14,6 +14,7 @@ globs:
 - **Repositories (`backend/fastapi/api/modules/*/repository.py`)**: Encapsulate all database access methods using **SQLAlchemy 2.0** or **SQLModel**. Keep operations purely focused on query execution without business decisions.
 - **Schemas (`backend/fastapi/api/modules/*/schemas.py`)**: Strict **Pydantic v2** DTOs for request validation (`CreateUserRequest`) and response serialization (`UserResponse`). Never expose database ORM models directly in API responses.
 - **Models (`backend/fastapi/api/modules/*/models.py`)**: Pure **SQLAlchemy 2.0** or **SQLModel** ORM entity declarations. Defines database tables and relationships. Do not write raw SQL or database query handlers inside model classes.
+- **Exceptions (`backend/fastapi/api/modules/*/exceptions.py`)**: Custom HTTP exceptions for the module. Define specific errors and their status codes.
 
 ## Asynchronous Database Operations
 - Enforce fully async I/O using SQLAlchemy 2.0 (`async_sessionmaker`, `select()`, `await session.execute()`).
