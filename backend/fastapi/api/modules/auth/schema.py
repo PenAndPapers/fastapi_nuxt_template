@@ -1,15 +1,23 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from modules.user.schema import UserCreateSchema
 
 
-class UserCreate(BaseModel):
+class AuthRegisterSchema(UserCreateSchema):
+    pass
+
+
+class AuthLoginSchema(BaseModel):
     email: EmailStr
-    password: str
-    full_name: str | None = None
+    password: str = Field(..., min_length=8, max_length=20, description="Password")
 
 
-class UserRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class AuthForgetPasswordSchema(BaseModel):
+    email: EmailStr
 
-    id: int
-    email: str
-    full_name: str | None = None
+
+class AuthResetPasswordSchema(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=20, description="New password")
+    confirm_password: str = Field(
+        ..., min_length=8, max_length=20, description="Confirm new password"
+    )

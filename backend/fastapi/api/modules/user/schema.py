@@ -1,14 +1,14 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserBaseSchema(BaseModel):
-    email: str
-    first_name: str | None = None
-    last_name: str | None = None
-    address: str | None = None
-    phone_number: str | None = None
+    email: EmailStr
+    first_name: str = Field(..., nullable=False, description="First name")
+    last_name: str = Field(..., nullable=False, description="Last name")
+    address: str = Field(..., nullable=True, description="Address")
+    phone_number: str = Field(..., nullable=True, description="Phone number")
 
 
 class UserSchema(UserBaseSchema):
@@ -20,7 +20,7 @@ class UserSchema(UserBaseSchema):
 
 
 class UserCreateSchema(UserBaseSchema):
-    password: str
+    password: str = Field(..., min_length=8, max_length=20, description="Password")
 
 
 class UserCreateResponseSchema(UserBaseSchema):
@@ -39,8 +39,3 @@ class UserUpdateResponseSchema(UserBaseSchema):
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime | None = None
-
-
-class UserLoginSchema(BaseModel):
-    email: str
-    password: str

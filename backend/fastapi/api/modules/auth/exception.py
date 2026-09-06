@@ -1,10 +1,37 @@
-class AuthError(Exception):
-    pass
+from core.exception import AppExceptionError
 
 
-class UserAlreadyExistsError(AuthError):
-    pass
+class AuthError(AppExceptionError):
+    status_code = 401
+    error_code = "UNAUTHORIZED"
+
+    def __init__(self, message: str | None):
+        self.message = message or "Error: Unauthorized"
+        super().__init__(self.message)
 
 
-class InvalidCredentialsError(AuthError):
-    pass
+class InvalidCredentialsError(AppExceptionError):
+    status_code = 400
+    error_code = "INVALID_CREDENTIALS"
+
+    def __init__(self, message: str | None):
+        self.message = message or "Error: Invalid credentials"
+        super().__init__(self.message)
+
+
+class UnauthorizedAccessError(AppExceptionError):
+    status_code = 403
+    error_code = "UNAUTHORIZED_ACCESS"
+
+    def __init__(self, message: str | None):
+        self.message = message or "Error: Unauthorized access"
+        super().__init__(self.message)
+
+
+class InvalidTokenError(AppExceptionError):
+    status_code = 400
+    error_code = "INVALID_TOKEN"
+
+    def __init__(self, message: str | None):
+        self.message = message or "Error: Invalid token"
+        super().__init__(self.message)

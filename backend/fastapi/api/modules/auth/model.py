@@ -1,24 +1,57 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.database import Base
+from core.database import AppBaseModel
+
+if TYPE_CHECKING:
+    from api.modules.user.model import User
 
 
-class User(Base):
-    __tablename__ = "users"
+class Auth(AppBaseModel):
+    """
+    Auth model.
+    """
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False,
-    )
+    __tablename__ = "auth"
+
+    token: Mapped[str] = mapped_column(index=True)
+    token_type: Mapped[str] = mapped_column(index=True)
+    expires_at: Mapped[datetime] = mapped_column(index=True)
+    is_revoked: Mapped[bool] = mapped_column(index=True, default=False)
+    user_id: Mapped[int] = mapped_column(index=True)
+    device_id: Mapped[str] = mapped_column(index=True)
+
+    user: Mapped["User"] = relationship("User", back_populates="tokens")
+    device: Mapped["Device"] = relationship("Device", back_populates="tokens")
+
+
+class OneTimePin(AppBaseModel):
+    """
+    OneTimePin model. Logs one-time pin information.
+    """
+
+    __tablename__ = "one_time_pins"
+    pin: Mapped[str] = mapped_column(index=True)
+    expires_at: Mapped[datetime] = mapped_column(index=True)
+    is_revoked: Mapped[bool] = mapped_column(index=True, default=False)
+    is_used: Mapped[bool] = mapped_column(index=True, default=False)
+    user_id: Mapped[int] = mapped_column(index=True)
+
+    user: Mapped["User"] = relationship("User", back_populates="one_time_pins")
+
+
+class Device(AppBaseModel):
+    """
+    Device model. Logs device information.
+    """
+
+    __tablename__ = "devices"
+    device_id: Mapped[str] = mapped_column(index=True)
+    device_type: Mapped[str] = mapped_column(index=True)
+    os: Mapped[str] = mapped_column(index=True)
+    browser: Mapped[str] = mapped_column(index=True)
+    ip: Mapped[str] = mapped_column(index=True)
+    latitude: Mapped[float] = mapped_column(index=True)
+    longitude: Mapped[float] = mapped_column(index=True)

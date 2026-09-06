@@ -1,15 +1,13 @@
-from datetime import datetime
+from typing import List
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sqlalchemy import DateTime, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
-
-from core.database import Base
+from core.base_model import AppBaseModel
 
 
-class User(Base):
+class User(AppBaseModel):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     uuid: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -17,13 +15,58 @@ class User(Base):
     last_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone_number: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+
+    # Many-to-Many relationship to Role via UserRole
+    roles: Mapped[List["Role"]] = relationship(
+        secondary="user_roles", back_populates="users", lazy="selectin"
     )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False,
+
+
+class UserRole(AppBaseModel):
+    """Junction table connecting Users and Roles."""
+
+    __tablename__ = "user_roles"
+
+    # Match foreign key types to AppBaseModel primary key (e.g., int or str/UUID)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"), index=True)
+
+
+class Role(AppBaseModel):
+    """Role definition table."""
+
+    __tablename__ = "roles"
+
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    # Relationships
+    users: Mapped[List["User"]] = relationship(secondary="user_roles", back_populates="roles")
+    permissions: Mapped[List["Permission"]] = relationship(
+        secondary="role_permissions", back_populates="roles", lazy="selectin"
     )
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class RolePermission(AppBaseModel):
+    """Junction table connecting Roles and Permissions."""
+
+    __tablename__ = "role_permissions"
+
+    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"), index=True)
+    permission_id: Mapped[int] = mapped_column(
+        ForeignKey("permissions.id", ondelete="CASCADE"), index=True
+    )
+
+
+class Permission(AppBaseModel):
+    """Permission definition table."""
+
+    __tablename__ = "permissions"
+
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    # Relationship back to Role
+    roles: Mapped[List["Role"]] = relationship(
+        secondary="role_permissions", back_populates="permissions"
+    )

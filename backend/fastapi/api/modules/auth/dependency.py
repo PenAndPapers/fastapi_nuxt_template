@@ -1,10 +1,21 @@
-from collections.abc import Generator
+from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy.orm import Session
 
-from core.database import get_db
+from core.database import DatabaseDep
+from .repo import AuthRepository
+from .service import AuthService
 
 
-def get_auth_db(db: Session = Depends(get_db)) -> Generator[Session, None, None]:
-    yield db
+def get_auth_repository(db: DatabaseDep) -> AuthRepository:
+    return AuthRepository(db)
+
+
+AuthRepositoryDep = Annotated[AuthRepository, Depends(get_auth_repository)]
+
+
+def get_auth_service(repository: AuthService = Depends(get_auth_repository)) -> AuthService:
+    return AuthService(repository)
+
+
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
