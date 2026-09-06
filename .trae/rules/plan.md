@@ -2,8 +2,12 @@
 alwaysApply: false
 description: Technical planning, feature specifications, architecture design, and requirement breakdowns.
 globs:
-  - "docs/plans/**/*.md"
-  - "docs/specs/**/*.md"
+  - "README.md"
+  - "docs/backend/fastapi/*.md"
+  - "docs/frontend/nuxt4/*.md"
+  - "backend/fastapi/*.md"
+  - "frontend/nuxt/*.md"
+  - "infrastructure/*.md"
 ---
 
 # Technical Planner Rules
