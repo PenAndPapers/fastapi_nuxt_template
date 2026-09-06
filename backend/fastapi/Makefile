@@ -34,7 +34,7 @@ migrate-logs:
 	uv run alembic history --verbose
 
 migrate-check:
-	uv run alembic check
+	uv run alembic current
 
 
 clean:
