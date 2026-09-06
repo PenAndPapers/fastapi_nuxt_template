@@ -14,10 +14,10 @@ update-deps:
 	uv sync
 
 lint:
-	uv run ruff check .
+	uv run ruff check . --no-cache
 
 lint-fix:
-	uv run ruff check . --fix
+	uv run ruff check . --fix --no-cache
 	uv run ruff format .
 
 migrate-create:
