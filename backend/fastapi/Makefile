@@ -3,7 +3,10 @@ export PYTHONDONTWRITEBYTECODE
 
 PY := PYTHONDONTWRITEBYTECODE=1 uv run
 
-.PHONY: check-prerequisites install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down migrate-logs migrate-check db-shell clean docker-build docker-run docker-test docker-shell docker-clean
+.PHONY: check-prerequisites require-backend-running install env-copy dev lint lint-fix test test-watch migrate-create migrate-upgrade migrate-downgrade migrate-history migrate-current migrate-pending docker-migrate-create docker-migrate-upgrade docker-migrate-downgrade docker-migrate-history docker-migrate-current db-shell clean docker-build docker-run docker-test docker-shell docker-clean
+
+# Migration targets depend on docker prerequisites being installed
+MIGRATION_PREREQS = check-prerequisites require-backend-running
 
 
 check-prerequisites: ## Check for required software
@@ -11,9 +14,25 @@ check-prerequisites: ## Check for required software
 	@docker compose version >/dev/null 2>&1 || { echo >&2 "❌ docker compose is not installed. Please install Docker Compose."; exit 1; }
 	@command -v uv >/dev/null 2>&1 || { echo >&2 "❌ uv is not installed. Install it: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
 	@command -v python >/dev/null 2>&1 || { echo >&2 "❌ python is not installed. Please install Python 3.11+. or higher version."; exit 1; }
+	@if [ ! -f .env ] && [ ! -f ../../.env ]; then \
+		echo >&2 "❌ .env file not found. Create one at the project root from .env.example:"; \
+		echo >&2 "   cp .env.example .env"; \
+		exit 1; \
+	fi
 	@echo ""
 	@echo "✅ All backend prerequisites are installed."
 	@echo ""
+
+
+require-backend-running: ## Internal: verify the backend container is up
+	@docker compose ps --status running --services 2>/dev/null | grep -q '^backend$$' || { \
+		echo "" >&2; \
+		echo "❌ Backend container is not running." >&2; \
+		echo "   Start the stack first:" >&2; \
+		echo "     docker compose up -d postgres redis backend" >&2; \
+		echo "" >&2; \
+		exit 1; \
+	}
 
 
 install: check-prerequisites
@@ -30,25 +49,37 @@ lint-fix:
 	uv run ruff check . --fix --no-cache
 	uv run ruff format .
 
-migrate-create:
+# --------------------------------------------------------------------
+# Migrations (Docker-first)
+# Use these targets to manage Alembic migrations. They run inside the
+# backend container so the database host resolves correctly.
+# Ensure the stack is up before invoking these:
+#   docker compose up -d postgres redis
+# --------------------------------------------------------------------
+
+migrate-create: $(MIGRATION_PREREQS) ## Create a new Alembic migration inside the backend service
 	@read -p "Enter migration message: " msg && \
-	uv run alembic revision --autogenerate -m "$$msg"
+	docker compose exec backend alembic revision --autogenerate -m "$$msg"
 
-migrate-upgrade:
-	uv run alembic upgrade head
+migrate-upgrade: $(MIGRATION_PREREQS) ## Apply migrations inside the backend service
+	@echo "▶ Applying migrations inside the backend service..."
+	docker compose exec backend alembic upgrade head
 
-migrate-downgrade:
-	uv run alembic downgrade -1
+migrate-downgrade: $(MIGRATION_PREREQS) ## Roll back the last migration inside the backend service
+	@echo "▶ Rolling back the last migration inside the backend service..."
+	docker compose exec backend alembic downgrade -1
 
-migrate-history:
-	uv run alembic history --verbose
+migrate-history: $(MIGRATION_PREREQS) ## Show migration history inside the backend service
+	@echo "▶ Showing migration history inside the backend service..."
+	docker compose exec backend alembic history --verbose
 
-migrate-current:
-	uv run alembic current
+migrate-current: $(MIGRATION_PREREQS) ## Show the current migration inside the backend service
+	@echo "▶ Showing the current migration inside the backend service..."
+	docker compose exec backend alembic current
 
-migrate-pending:
-	uv run alembic history --head
-
+migrate-pending: $(MIGRATION_PREREQS) ## Show pending migrations (head vs current) inside the backend service
+	@echo "▶ Showing pending migrations (head vs current) inside the backend service..."
+	docker compose exec backend alembic history --head
 
 clean:
 	@echo ""
