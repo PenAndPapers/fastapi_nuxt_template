@@ -71,8 +71,13 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-development}
       BACKEND_SECRET_KEY: ${BACKEND_SECRET_KEY:-changeme}
       BACKEND_ALLOWED_ORIGINS: ${BACKEND_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
+      # Prevent __pycache__ from being written to bind-mounted migrations directory
+      PYTHONDONTWRITEBYTECODE: "1"
     ports:
       - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      # Sync migrations with host so newly generated revisions persist
+      - ./backend/fastapi/migrations:/app/migrations
     depends_on:
       postgres:
         condition: service_healthy

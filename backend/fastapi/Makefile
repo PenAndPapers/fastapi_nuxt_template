@@ -3,7 +3,7 @@ export PYTHONDONTWRITEBYTECODE
 
 PY := PYTHONDONTWRITEBYTECODE=1 uv run
 
-.PHONY: check-prerequisites require-backend-running install env-copy dev lint lint-fix test test-watch migrate-create migrate-upgrade migrate-downgrade migrate-history migrate-current migrate-pending docker-migrate-create docker-migrate-upgrade docker-migrate-downgrade docker-migrate-history docker-migrate-current db-shell clean docker-build docker-run docker-test docker-shell docker-clean
+.PHONY: check-prerequisites require-backend-running install env-copy dev lint lint-fix test test-watch migrate-create migrate-upgrade migrate-downgrade migrate-history migrate-current migrate-pending docker-migrate-create docker-migrate-upgrade docker-migrate-downgrade docker-migrate-history docker-migrate-current db-shell clean reset-db reset-db-force docker-build docker-run docker-test docker-shell docker-clean
 
 # Migration targets depend on docker prerequisites being installed
 MIGRATION_PREREQS = check-prerequisites require-backend-running
@@ -79,7 +79,7 @@ migrate-current: $(MIGRATION_PREREQS) ## Show the current migration inside the b
 
 migrate-pending: $(MIGRATION_PREREQS) ## Show pending migrations (head vs current) inside the backend service
 	@echo "▶ Showing pending migrations (head vs current) inside the backend service..."
-	docker compose exec backend alembic history --head
+	docker compose exec backend alembic heads
 
 clean:
 	@echo ""
@@ -119,3 +119,36 @@ docker-clean: ## Stop and remove backend container
 	@echo "▶ Stopping backend container..."
 	@docker compose down backend
 	@echo "✅ Backend container stopped."
+
+# --------------------------------------------------------------------
+# Database reset (DESTRUCTIVE - wipes volumes)
+# Use when postgres credentials change or you want a clean slate.
+# --------------------------------------------------------------------
+
+reset-db: check-prerequisites ## ⚠️  Destroy DB + redis volumes and reinitialize (prompts for confirmation)
+	@echo ""
+	@echo "⚠️  This will DESTROY all data in the postgres and redis volumes."
+	@echo "   Use only for development. Data loss is permanent."
+	@echo ""
+	@read -p "Are you sure? [y/N] " confirm && \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		echo "▶ Stopping stack and removing volumes..."; \
+		docker compose down -v; \
+		echo "▶ Reinitializing postgres and redis..."; \
+		docker compose up -d postgres redis; \
+		echo ""; \
+		echo "✅ Database reset complete."; \
+		echo "ℹ️  Next: docker compose up -d backend"; \
+		echo ""; \
+	else \
+		echo "Cancelled."; \
+	fi
+
+reset-db-force: check-prerequisites ## ⚠️  Like reset-db but skips the confirmation prompt (CI/scripts)
+	@echo "▶ Force-resetting database volumes..."
+	@docker compose down -v
+	@docker compose up -d postgres redis
+	@echo ""
+	@echo "✅ Database reset complete."
+	@echo "ℹ️  Next: docker compose up -d backend"
+	@echo ""
