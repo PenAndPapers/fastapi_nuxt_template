@@ -36,10 +36,12 @@ NODE_MAJOR_REQUIRED := 22
         backend-test backend-test-unit backend-test-integration backend-test-e2e \
         backend-migrate-create backend-migrate-upgrade backend-migrate-downgrade \
         backend-migrate-history backend-migrate-current backend-migrate-pending \
-        backend-clean \
+        backend-clean backend-rotate-signing-key backend-generate-signing-key \
+        setup-frontend setup-backend setup-project \
         docker-up docker-up-logs docker-down docker-down-volumes docker-rebuild docker-restart docker-logs docker-ps \
         docker-health docker-clean \
-        fullstack-test fullstack-shell
+        fullstack-test fullstack-shell \
+        dev-up clean-project
 
 # --------------------------------------------------------------------
 # Help
@@ -176,6 +178,10 @@ backend-clean:
 	@cd $(BACKEND_DIR) && make clean
 	@echo -e "$(_OK)✅ Backend artifacts cleaned."
 
+backend-generate-signing-key:
+	@cd $(BACKEND_DIR) && make generate-signing-key
+	@echo -e "$(_OK)✅ Backend signing key generated."
+
 # --------------------------------------------------------------------
 # Docker targets (orchestrated via docker-compose)
 # --------------------------------------------------------------------
@@ -193,6 +199,13 @@ fullstack-shell: ## Open shell in backend and frontend container
 	@echo -e "$(_INFO)▶ℹ️ Opening shell in frontend container…$(_RESET)"
 	@cd $(FRONTEND_DIR) && make shell
 
+fullstack-clean: ## Remove generated Nuxt artifacts + node_modules
+	@echo -e "$(_WARN)▶⚠️  Cleaning frontend artifacts…$(_RESET)"
+	@cd $(FRONTEND_DIR) && make clean
+	@echo -e "$(_WARN)▶⚠️  Cleaning backend artifacts…$(_RESET)"
+	@cd $(BACKEND_DIR) && make clean
+	@echo -e "$(_OK)✅ All Docker artifacts cleaned successfully"
+
 # --------------------------------------------------------------------
 # Docker commands
 # --------------------------------------------------------------------
@@ -201,6 +214,11 @@ docker-up: ## Build and start all Docker services (detached) fullstack mode
 	@if [ ! -f .env ]; then \
 		echo -e "$(_WARN)⚠️ .env not found, copying from .env.example$(_RESET)" && \
 		cp .env.example .env; \
+	fi
+	# check if backend .venv exists, if not, build it
+	@if [ ! -d ./backend/fastapi/.venv ]; then \
+		echo -e "$(_WARN)⚠️ Backend .venv not found, building…$(_RESET)" && \
+		make backend-install; \
 	fi
 	@docker compose up -d --build
 	@echo -e "$(_OK)✅ All services started. Frontend: http://localhost:3000  Backend: http://localhost:8000  Nginx: http://localhost:8080$(_RESET)"

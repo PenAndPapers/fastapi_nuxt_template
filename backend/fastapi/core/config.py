@@ -51,7 +51,7 @@ class Settings(BaseSettings):
 
   # ---- Security ----
   secret_key: str = Field(default="changeme", env="BACKEND_SECRET_KEY")
-  jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
+  jwt_algorithm: str = Field(default="ES256", env="JWT_ALGORITHM")
   jwt_secret_key: str = Field(default="changeme", env="JWT_SECRET_KEY")
   access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
   refresh_token_expire_minutes: int = Field(default=1440, env="REFRESH_TOKEN_EXPIRE_MINUTES")

@@ -76,8 +76,7 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      # Sync migrations with host so newly generated revisions persist
-      - ./backend/fastapi/migrations:/app/migrations
+      - ./backend/fastapi:/app
     depends_on:
       postgres:
         condition: service_healthy
