@@ -37,8 +37,6 @@ class Settings(BaseSettings):
       f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     )
 
-  test_database_url: str | None = Field(default=None, env="TEST_DATABASE_URL")
-
   # ---- Redis ----
   redis_host: str = Field(default="localhost", env="REDIS_HOST")
   redis_port: int = Field(default=6379, env="REDIS_PORT")
@@ -53,6 +51,17 @@ class Settings(BaseSettings):
 
   # ---- Security ----
   secret_key: str = Field(default="changeme", env="BACKEND_SECRET_KEY")
+  jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
+  jwt_secret_key: str = Field(default="changeme", env="JWT_SECRET_KEY")
+  access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+  refresh_token_expire_minutes: int = Field(default=1440, env="REFRESH_TOKEN_EXPIRE_MINUTES")
+  password_reset_token_expire_minutes: int = Field(
+    default=15, env="PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"
+  )
+  email_verification_token_expire_minutes: int = Field(
+    default=10080, env="EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES"
+  )
+  otp_expire_seconds: int = Field(default=30, env="OTP_EXPIRE_SECONDS")
   allowed_origins: list[str] = Field(
     default_factory=lambda: [
       "http://localhost:3000",
