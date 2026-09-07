@@ -97,7 +97,7 @@ frontend-format-check: frontend-prepare ## Run Prettier in check-only mode (CI, 
 	@cd $(FRONTEND_DIR) && make format-check
 
 frontend-clean: ## Remove generated Nuxt artifacts + node_modules
-	@echo -e "$(_WARN)▶ Cleaning frontend artifacts…$(_RESET)"
+	@echo -e "$(_WARN)▶⚠️  Cleaning frontend artifacts…$(_RESET)"
 	@cd $(FRONTEND_DIR) && make down
 
 frontend-build: frontend-prepare ## Build the frontend for production (.output/)
@@ -108,7 +108,7 @@ frontend-up: ## Start frontend container
 	@cd $(FRONTEND_DIR) && make up
 
 frontend-down: ## Stop and remove frontend container
-	@echo -e "$(_WARN)▶ Stopping and removing frontend container…$(_RESET)"
+	@echo -e "$(_WARN)▶⚠️  Stopping and removing frontend container…$(_RESET)"
 	@cd $(FRONTEND_DIR) && make down
 
 frontend-preview: frontend-build ## Preview production build on http://localhost:3000
@@ -181,56 +181,56 @@ backend-clean:
 # --------------------------------------------------------------------
 
 fullstack-test: ## Run all tests in Docker environment
-	@echo -e "$(_INFO)▶ Running backend tests in Docker…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Running backend tests in Docker…$(_RESET)"
 	@cd $(BACKEND_DIR) && make test
-	@echo -e "$(_INFO)▶ Running frontend tests in Docker…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Running frontend tests in Docker…$(_RESET)"
 	@cd $(FRONTEND_DIR) && make test
 	@echo -e "$(_OK)✅ All Docker tests completed."
 
 fullstack-shell: ## Open shell in backend and frontend container
-	@echo -e "$(_INFO)▶ Opening shell in backend container…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Opening shell in backend container…$(_RESET)"
 	@cd $(BACKEND_DIR) && make shell
-	@echo -e "$(_INFO)▶ Opening shell in frontend container…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Opening shell in frontend container…$(_RESET)"
 	@cd $(FRONTEND_DIR) && make shell
 
 # --------------------------------------------------------------------
 # Docker commands
 # --------------------------------------------------------------------
 docker-up: ## Build and start all Docker services (detached) fullstack mode
-	@echo -e "$(_INFO)▶ Building and starting Docker services…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Building and starting Docker services…$(_RESET)"
 	@if [ ! -f .env ]; then \
-		echo -e "$(_WARN)⚠ .env not found, copying from .env.example$(_RESET)" && \
+		echo -e "$(_WARN)⚠️ .env not found, copying from .env.example$(_RESET)" && \
 		cp .env.example .env; \
 	fi
 	@docker compose up -d --build
 	@echo -e "$(_OK)✅ All services started. Frontend: http://localhost:3000  Backend: http://localhost:8000  Nginx: http://localhost:8080$(_RESET)"
 
 docker-up-logs: ## Build and start all Docker services with logs (foreground)
-	@echo -e "$(_INFO)▶ Building and starting Docker services with logs…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Building and starting Docker services with logs…$(_RESET)"
 	@if [ ! -f .env ]; then \
-		echo -e "$(_WARN)⚠ .env not found, copying from .env.example$(_RESET)" && \
+		echo -e "$(_WARN)⚠️ .env not found, copying from .env.example$(_RESET)" && \
 		cp .env.example .env; \
 	fi
 	@docker compose up --build
 
 docker-down: ## Stop and remove all Docker services (preserves volumes)
-	@echo -e "$(_INFO)▶ Stopping Docker services…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Stopping Docker services…$(_RESET)"
 	@docker compose down
 	@echo -e "$(_OK)✅ Services stopped.$(_RESET)"
 
 docker-down-volumes: ## Stop services and remove volumes (DESTRUCTIVE — drops DB data)
-	@echo -e "$(_WARN)▶ Stopping services and removing volumes…$(_RESET)"
+	@echo -e "$(_WARN)▶⚠️ Stopping services and removing volumes…$(_RESET)"
 	@docker compose down -v
 	@echo -e "$(_OK)✅ Services and volumes removed.$(_RESET)"
 
 docker-rebuild: ## Force rebuild and restart all services
-	@echo -e "$(_INFO)▶ Rebuilding all Docker services…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Rebuilding all Docker services…$(_RESET)"
 	@docker compose build --no-cache
 	@docker compose up -d
 	@echo -e "$(_OK)✅ All services rebuilt and restarted.$(_RESET)"
 
 docker-restart: ## Restart all running services
-	@echo -e "$(_INFO)▶ Restarting Docker services…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Restarting Docker services…$(_RESET)"
 	@docker compose restart
 	@echo -e "$(_OK)✅ Services restarted.$(_RESET)"
 
@@ -241,10 +241,10 @@ docker-ps: ## List running Docker services
 	@docker compose ps
 
 docker-health: ## Check health status of all services
-	@echo -e "$(_INFO)▶ Service health:$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Service health:$(_RESET)"
 	@docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
 docker-clean: docker-down docker-down-volumes ## Stop services and remove all data + images
-	@echo -e "$(_INFO)▶ Removing Docker images…$(_RESET)"
+	@echo -e "$(_INFO)▶ℹ️ Removing Docker images…$(_RESET)"
 	@docker compose down --rmi all --volumes --remove-orphans
 	@echo -e "$(_OK)✅ All Docker artifacts cleaned.$(_RESET)"
