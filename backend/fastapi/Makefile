@@ -3,13 +3,23 @@ export PYTHONDONTWRITEBYTECODE
 
 PY := PYTHONDONTWRITEBYTECODE=1 uv run
 
-.PHONY: setup install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down migrate-logs migrate-check db-shell clean docker-build docker-run docker-test docker-shell docker-clean
+.PHONY: check-prerequisites install env-copy dev lint lint-fix test test-watch migrate-create migrate-up migrate-down migrate-logs migrate-check db-shell clean docker-build docker-run docker-test docker-shell docker-clean
 
 
-install:
+check-prerequisites: ## Check for required software
+	@command -v docker >/dev/null 2>&1 || { echo >&2 "❌ docker is not installed. Please install Docker."; exit 1; }
+	@docker compose version >/dev/null 2>&1 || { echo >&2 "❌ docker compose is not installed. Please install Docker Compose."; exit 1; }
+	@command -v uv >/dev/null 2>&1 || { echo >&2 "❌ uv is not installed. Install it: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
+	@command -v python >/dev/null 2>&1 || { echo >&2 "❌ python is not installed. Please install Python 3.11+. or higher version."; exit 1; }
+	@echo ""
+	@echo "✅ All backend prerequisites are installed."
+	@echo ""
+
+
+install: check-prerequisites
 	uv sync
 
-update-deps:
+update-deps: check-prerequisites
 	uv lock --upgrade
 	uv sync
 
@@ -24,17 +34,20 @@ migrate-create:
 	@read -p "Enter migration message: " msg && \
 	uv run alembic revision --autogenerate -m "$$msg"
 
-migrate-up:
+migrate-upgrade:
 	uv run alembic upgrade head
 
-migrate-down:
+migrate-downgrade:
 	uv run alembic downgrade -1
 
-migrate-logs:
+migrate-history:
 	uv run alembic history --verbose
 
-migrate-check:
+migrate-current:
 	uv run alembic current
+
+migrate-pending:
+	uv run alembic history --head
 
 
 clean:

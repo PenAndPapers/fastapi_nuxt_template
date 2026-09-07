@@ -18,7 +18,7 @@ Install these applications globally on your host machine before initializing the
 || **uv** | Latest | Python package, virtualenv, and Python version manager | [Docs](https://docs.astral.sh/uv/) |
 | **Node.js** | 22.x (LTS) | Tooling runtime for frontend build system | [Docs](https://nodejs.org/) |
 | **pnpm** | 9.x+ | Package manager for frontend dependencies | [Docs](https://pnpm.io/) |
-| **Database GUI** *(Optional)* | Latest | DB inspection (DBeaver, TablePlus, or pgAdmin) | [DBeaver](https://dbeaver.io/) |
+| **Database GUI** *(Optional)* | Latest | DB inspection (DBeaver, TablePlus, or pgAdmin) | [DBeaver](https://dbeaver.io/), [TablePlus](https://tableplus.com/), [pgAdmin](https://www.pgadmin.org/download/) |
 
 > **Note on Python:** You do not need to manage global Python installations or `pip`. `uv` automatically downloads and uses the correct Python version defined in `pyproject.toml`.
 
