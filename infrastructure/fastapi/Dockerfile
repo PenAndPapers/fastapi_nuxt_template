@@ -12,9 +12,6 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-# Tell config.py that the project root inside this container is /app
-ENV PROJECT_ROOT=/app
-
 # Enable bytecode compilation & copy-mode for performance
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
@@ -44,9 +41,6 @@ COPY --from=builder /install /usr/local/lib/python3.12/site-packages
 COPY --from=builder /install/bin /usr/local/bin
 
 WORKDIR /app
-
-# Tell config.py that the project root inside this container is /app
-ENV PROJECT_ROOT=/app
 
 # Copy application source code
 COPY backend/fastapi/ ./

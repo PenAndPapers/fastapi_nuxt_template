@@ -1,44 +1,15 @@
-import os
 from functools import lru_cache
-from pathlib import Path
-from urllib.parse import quote_plus
 
+from dotenv import find_dotenv
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# Resolve the project root in a way that works both on the developer host and
-# inside the Docker container.
-#
-# On the host:
-#   backend/fastapi/core/config.py -> backend/fastapi -> backend -> root
-#   parents[3] = repo root
-#
-# Inside Docker (WORKDIR=/app):
-#   /app/core/config.py -> parents[0..2] -> parents[3] raises IndexError
-#   PROJECT_ROOT env var (set in Dockerfile) takes precedence.
-def _resolve_project_root() -> Path:
-  env_root = os.getenv("PROJECT_ROOT")
-  if env_root:
-    return Path(env_root)
-  try:
-    return Path(__file__).resolve().parents[3]
-  except IndexError:
-    # Fallback: assume the file lives at <root>/core/config.py
-    return Path(__file__).resolve().parents[1]
-
-
-PROJECT_ROOT = _resolve_project_root()
-
-
 class Settings(BaseSettings):
   model_config = SettingsConfigDict(
-    # Load root .env first (shared by all services),
-    # then backend/fastapi/.env can override locally (e.g. SQLite for tests).
-    env_file=[
-      str(PROJECT_ROOT / "backend" / "fastapi" / ".env"),
-      str(PROJECT_ROOT / ".env"),
-    ],
+    # Automatically find the .env file in parent directories.
+    # This works on both the developer host and inside the Docker container.
+    env_file=find_dotenv(),
     env_file_encoding="utf-8",
     extra="ignore",
     case_sensitive=False,
