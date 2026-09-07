@@ -3,7 +3,7 @@ export PYTHONDONTWRITEBYTECODE
 
 PY := PYTHONDONTWRITEBYTECODE=1 uv run
 
-.PHONY: check-prerequisites require-backend-running install env-copy dev lint lint-fix test test-watch migrate-create migrate-upgrade migrate-downgrade migrate-history migrate-current migrate-pending docker-migrate-create docker-migrate-upgrade docker-migrate-downgrade docker-migrate-history docker-migrate-current db-shell clean reset-db reset-db-force docker-build docker-run docker-test docker-shell docker-clean
+.PHONY: check-prerequisites require-backend-running install update-deps lint lint-fix test test-unit test-integration test-e2e migrate-create migrate-upgrade migrate-downgrade migrate-history migrate-current migrate-pending build up down shell clean reset-db reset-db-force
 
 # Migration targets depend on docker prerequisites being installed
 MIGRATION_PREREQS = check-prerequisites require-backend-running
@@ -81,6 +81,60 @@ migrate-pending: $(MIGRATION_PREREQS) ## Show pending migrations (head vs curren
 	@echo "▶ Showing pending migrations (head vs current) inside the backend service..."
 	docker compose exec backend alembic heads
 
+
+# --------------------------------------------------------------------
+# Unit Tests
+# Test run in Docker container with pytest
+# --------------------------------------------------------------------
+
+test: $(MIGRATION_PREREQS) ## Run backend tests in Docker
+	@echo "▶ Running backend tests in Docker..."
+	docker compose exec backend python -m pytest tests -v
+	@echo "✅ Backend tests completed."
+
+test-unit: $(MIGRATION_PREREQS) ## Run backend unit tests in Docker
+	@echo "▶ Running backend unit tests in Docker..."
+	docker compose exec backend python -m pytest tests/unit -v
+	@echo "✅ Backend unit tests completed."
+
+test-integration: $(MIGRATION_PREREQS) ## Run backend integration tests in Docker
+	@echo "▶ Running backend integration tests in Docker..."
+	docker compose exec backend python -m pytest tests/integration -v
+	@echo "✅ Backend integration tests completed."
+
+test-e2e: $(MIGRATION_PREREQS) ## Run backend end-to-end tests in Docker
+	@echo "▶ Running backend end-to-end tests in Docker..."
+	docker compose exec backend python -m pytest tests/e2e -v
+	@echo "✅ Backend end-to-end tests completed."
+
+# --------------------------------------------------------------------
+# Docker targets (run inside container via docker compose)
+# --------------------------------------------------------------------
+
+build: ## Build backend Docker image
+	@echo "▶ Building backend Docker image..."
+	@docker compose build backend
+	@echo "✅ Backend Docker image built."
+
+up: ## Run backend in Docker (detached)
+	@echo "▶ Starting backend container..."
+	@docker compose up -d backend
+	@echo "✅ Backend container started on http://localhost:8000"
+
+down: ## Stop and remove backend container
+	@echo "▶ Stopping backend container..."
+	@docker compose down backend
+	@echo "✅ Backend container stopped."
+
+shell: ## Open shell in backend container
+	@echo "▶ Opening shell in backend container..."
+	@docker compose exec backend /bin/bash
+
+# --------------------------------------------------------------------
+# ⚠️⚠️⚠️ DESTRUCTIVE commands, make sure you know what you're doing!
+# Use only for development. Data loss is permanent. Use with caution!
+# --------------------------------------------------------------------
+
 clean:
 	@echo ""
 	@echo "🧹 Cleaning backend artifacts..."
@@ -92,38 +146,6 @@ clean:
 	@echo "✅ Backend artifacts cleaned successfully"
 	@echo ""
 
-# --------------------------------------------------------------------
-# Docker targets (run inside container via docker compose)
-# --------------------------------------------------------------------
-
-docker-build: ## Build backend Docker image
-	@echo "▶ Building backend Docker image..."
-	@docker compose build backend
-	@echo "✅ Backend Docker image built."
-
-docker-run: ## Run backend in Docker (detached)
-	@echo "▶ Starting backend container..."
-	@docker compose up -d backend
-	@echo "✅ Backend container started on http://localhost:8000"
-
-docker-test: ## Run backend tests in Docker
-	@echo "▶ Running backend tests in Docker..."
-	@docker compose exec backend python -m pytest tests -v
-	@echo "✅ Backend tests completed."
-
-docker-shell: ## Open shell in backend container
-	@echo "▶ Opening shell in backend container..."
-	@docker compose exec backend /bin/bash
-
-docker-clean: ## Stop and remove backend container
-	@echo "▶ Stopping backend container..."
-	@docker compose down backend
-	@echo "✅ Backend container stopped."
-
-# --------------------------------------------------------------------
-# Database reset (DESTRUCTIVE - wipes volumes)
-# Use when postgres credentials change or you want a clean slate.
-# --------------------------------------------------------------------
 
 reset-db: check-prerequisites ## ⚠️  Destroy DB + redis volumes and reinitialize (prompts for confirmation)
 	@echo ""

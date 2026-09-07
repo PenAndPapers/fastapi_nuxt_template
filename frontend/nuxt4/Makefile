@@ -1,6 +1,6 @@
 PY := pnpm
 
-.PHONY: check install prepare dev build preview generate typecheck lint lint-fix format format-check clean docker-build docker-run docker-test docker-shell docker-clean
+.PHONY: check-prerequisites install prepare dev build preview generate typecheck lint lint-fix format format-check clean up down test shell down
 
 # Version requirements
 NODE_MAJOR_REQUIRED := 22
@@ -16,7 +16,7 @@ help: ## Show this help message
 # --------------------------------------------------------------------
 # Prerequisite checks
 # --------------------------------------------------------------------
-dev-check: ## Verify Node 22.x LTS + pnpm are installed (fail-fast)
+check-prerequisites:## Verify Node 22.x LTS + pnpm are installed (fail-fast)
 	@echo "▶ Checking frontend tooling…"
 	@if ! command -v node >/dev/null 2>&1; then \
 		echo "❌ Node.js is not installed."; \
@@ -41,7 +41,7 @@ dev-check: ## Verify Node 22.x LTS + pnpm are installed (fail-fast)
 # --------------------------------------------------------------------
 # Installation & setup
 # --------------------------------------------------------------------
-dev-install: dev-check ## Install frontend deps (skips if lockfile unchanged)
+install: check-prerequisites ## Install frontend deps (skips if lockfile unchanged)
 	@echo "▶ Installing frontend dependencies…"
 	@(pnpm install --frozen-lockfile) 2>/dev/null \
 		|| ( \
@@ -50,7 +50,7 @@ dev-install: dev-check ## Install frontend deps (skips if lockfile unchanged)
 		)
 	@echo "✅ Frontend dependencies installed."
 
-dev-prepare: dev-install ## Run `nuxt prepare` (generates .nuxt + types)
+prepare: install ## Run `nuxt prepare` (generates .nuxt + types)
 	@echo "▶ Preparing Nuxt environment…"
 	@pnpm run postinstall
 	@echo "✅ Nuxt environment ready."
@@ -116,26 +116,27 @@ clean: ## Remove generated Nuxt artifacts + node_modules
 # --------------------------------------------------------------------
 # Docker targets (run inside container via docker compose)
 # --------------------------------------------------------------------
-docker-build: ## Build frontend Docker image
+build: ## Build frontend Docker image
 	@echo "▶ Building frontend Docker image..."
 	@docker compose build frontend
 	@echo "✅ Frontend Docker image built."
 
-docker-run: ## Run frontend in Docker (detached)
+up: ## Run frontend in Docker (detached)
 	@echo "▶ Starting frontend container..."
 	@docker compose up -d frontend
 	@echo "✅ Frontend container started on http://localhost:3000"
 
-docker-test: ## Run tests inside frontend container
+down: ## Stop and remove frontend container
+	@echo "▶ Stopping frontend container..."
+	@docker compose down frontend
+	@echo "✅ Frontend container stopped."
+
+test: ## Run tests inside frontend container
 	@echo "▶ Running frontend tests in Docker..."
 	@docker compose exec frontend pnpm run test:unit 2>/dev/null || echo "⚠ No unit tests configured yet (add test scripts to package.json)"
 	@echo "✅ Frontend tests completed."
 
-docker-shell: ## Open shell in frontend container
+shell: ## Open shell in frontend container
 	@echo "▶ Opening shell in frontend container..."
 	@docker compose exec frontend /bin/sh
 
-docker-clean: ## Stop and remove frontend container
-	@echo "▶ Stopping frontend container..."
-	@docker compose down frontend
-	@echo "✅ Frontend container stopped."

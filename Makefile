@@ -31,18 +31,19 @@ NODE_MAJOR_REQUIRED := 22
         frontend-build frontend-preview frontend-generate \
         frontend-typecheck frontend-lint frontend-lint-fix \
         frontend-format frontend-format-check frontend-clean \
-        backend-check backend-dev backend-update-deps \
-        backend-lint-fix backend-test backend-test-watch \
-        backend-migrate-create backend-migrate-up backend-migrate-down \
-        setup-frontend setup-backend setup-project \
-        docker-up docker-down docker-rebuild docker-logs docker-ps \
-        docker-migrate-up docker-migrate-down docker-health \
-        docker-build docker-test docker-shell-backend docker-shell-frontend docker-clean \
-        dev-up clean-project
+        frontend-up frontend-down frontend-shell \
+        backend-install backend-update-deps backend-lint backend-lint-fix \
+        backend-test backend-test-unit backend-test-integration backend-test-e2e \
+        backend-migrate-create backend-migrate-upgrade backend-migrate-downgrade \
+        backend-migrate-history backend-migrate-current backend-migrate-pending \
+        backend-clean \
+        docker-up docker-up-logs docker-down docker-down-volumes docker-rebuild docker-restart docker-logs docker-ps \
+        docker-health docker-clean \
+        fullstack-test fullstack-shell
 
-# ========================================================
+# --------------------------------------------------------------------
 # Help
-# ========================================================
+# --------------------------------------------------------------------
 help: ## Show this help message
 	@echo -e ""
 	@echo -e "$(_INFO)FastAPI Nuxt Template — available Make targets$(_RESET)"
@@ -58,30 +59,24 @@ help: ## Show this help message
 		| awk 'BEGIN {FS = ":.*##"}; {printf "  $(_OK)%-22s$(_RESET) %s\n", $$1, $$2}'
 	@echo -e ""
 
-# ========================================================
+# --------------------------------------------------------------------
 # Frontend commands (delegated to frontend/nuxt4/Makefile)
-# ========================================================
+# --------------------------------------------------------------------
 frontend-check: ## Verify Node 22.x LTS + pnpm are installed (fail-fast)
 	@if [ ! -f $(FRONTEND_DIR)/Makefile ]; then \
 		echo "$(_ERR)❌ $(FRONTEND_DIR)/Makefile not found$(_RESET)"; \
 		exit 1; \
 	fi
-	@cd $(FRONTEND_DIR) && make dev-check
+	@cd $(FRONTEND_DIR) && make check-prerequisites
 
 frontend-install: frontend-check ## Install frontend deps (skips if lockfile unchanged)
-	@cd $(FRONTEND_DIR) && make dev-install
+	@cd $(FRONTEND_DIR) && make install
 
 frontend-prepare: frontend-install ## Run `nuxt prepare` (generates .nuxt + types)
-	@cd $(FRONTEND_DIR) && make dev-prepare
+	@cd $(FRONTEND_DIR) && make prepare
 
 frontend-dev: frontend-prepare ## Start Nuxt 4 dev server (http://localhost:3000)
 	@cd $(FRONTEND_DIR) && make dev
-
-frontend-build: frontend-prepare ## Build the frontend for production (.output/)
-	@cd $(FRONTEND_DIR) && make build
-
-frontend-preview: frontend-build ## Preview production build on http://localhost:3000
-	@cd $(FRONTEND_DIR) && make preview
 
 frontend-generate: frontend-prepare ## Generate static site (SSG output)
 	@cd $(FRONTEND_DIR) && make generate
@@ -92,70 +87,116 @@ frontend-typecheck: frontend-prepare ## Run Nuxt type checking (vue-tsc)
 frontend-lint: frontend-install ## Run ESLint (writes no-fix output, non-zero on lint errors)
 	@cd $(FRONTEND_DIR) && make lint
 
-frontend-lint-fix: frontend-install ## Run ESLint with --fix (auto-fixable issues only)
+frontend-lint-fix: frontend-prepare ## Run ESLint with --fix (auto-fixable issues only)
 	@cd $(FRONTEND_DIR) && make lint-fix
 
-frontend-format: frontend-install ## Run Prettier (rewrite files in place)
+frontend-format: frontend-prepare ## Run Prettier (rewrite files in place)
 	@cd $(FRONTEND_DIR) && make format
 
-frontend-format-check: frontend-install ## Run Prettier in check-only mode (CI, returns non-zero on unformatted files)
+frontend-format-check: frontend-prepare ## Run Prettier in check-only mode (CI, returns non-zero on unformatted files)
 	@cd $(FRONTEND_DIR) && make format-check
 
 frontend-clean: ## Remove generated Nuxt artifacts + node_modules
 	@echo -e "$(_WARN)▶ Cleaning frontend artifacts…$(_RESET)"
-	@cd $(FRONTEND_DIR) && make clean
+	@cd $(FRONTEND_DIR) && make down
 
-# ========================================================
+frontend-build: frontend-prepare ## Build the frontend for production (.output/)
+	@cd $(FRONTEND_DIR) && make build
+
+frontend-up: ## Start frontend container
+	@echo "▶ Starting frontend container..."
+	@cd $(FRONTEND_DIR) && make up
+
+frontend-down: ## Stop and remove frontend container
+	@echo -e "$(_WARN)▶ Stopping and removing frontend container…$(_RESET)"
+	@cd $(FRONTEND_DIR) && make down
+
+frontend-preview: frontend-build ## Preview production build on http://localhost:3000
+	@cd $(FRONTEND_DIR) && make preview
+
+frontend-shell: ## Open shell in frontend container
+	@cd $(FRONTEND_DIR) && make shell
+
+# --------------------------------------------------------------------
 # Backend commands (delegated to backend/fastapi/Makefile)
-# ========================================================
+# --------------------------------------------------------------------
+backend-install:
+	@cd $(BACKEND_DIR) && make install
+	@echo -e "$(_OK)✅ Backend deps installed."
+
+backend-update-deps:
+	@cd $(BACKEND_DIR) && make update-deps
+	@echo -e "$(_OK)✅ Backend deps updated."
+
+backend-lint:
+	@cd $(BACKEND_DIR) && make lint
+	@echo -e "$(_OK)✅ Backend lint completed."
+
+backend-migrate-create:
+	@cd $(BACKEND_DIR) && make migrate-create
+	@echo -e "$(_OK)✅ Backend migration created."
+
+backend-migrate-upgrade:
+	@cd $(BACKEND_DIR) && make migrate-upgrade
+	@echo -e "$(_OK)✅ Backend migrations applied."
+
+backend-migrate-downgrade:
+	@cd $(BACKEND_DIR) && make migrate-downgrade
+	@echo -e "$(_OK)✅ Backend migrations rolled back."
+
+backend-migrate-history:
+	@cd $(BACKEND_DIR) && make migrate-history
+	@echo -e "$(_OK)✅ Backend migrations history completed."
+
+backend-migrate-current:
+	@cd $(BACKEND_DIR) && make migrate-current
+	@echo -e "$(_OK)✅ Backend current migration completed."
+
+backend-migrate-pending:
+	@cd $(BACKEND_DIR) && make migrate-pending
+	@echo -e "$(_OK)✅ Backend pending migrations completed."
+
+backend-test:
+	@cd $(BACKEND_DIR) && make test
+	@echo -e "$(_OK)✅ Backend tests completed."
+
+backend-test-unit:
+	@cd $(BACKEND_DIR) && make test-unit
+	@echo -e "$(_OK)✅ Backend unit tests completed."
+
+backend-test-integration:
+	@cd $(BACKEND_DIR) && make test-integration
+	@echo -e "$(_OK)✅ Backend integration tests completed."
+
+backend-test-e2e:
+	@cd $(BACKEND_DIR) && make test-e2e
+	@echo -e "$(_OK)✅ Backend end-to-end tests completed."
 
 backend-clean:
 	@cd $(BACKEND_DIR) && make clean
-
-# ========================================================
-# Project setup
-# ========================================================
-
-setup-frontend: frontend-prepare ## Full first-run frontend setup: check → install → prepare
-	@echo -e "$(_OK)✅ Frontend setup complete. Run 'make frontend-dev' to start the dev server.$(_RESET)"
-
-setup-backend: backend-check ## Full first-run backend setup: install → env → dev → test
-	@echo -e "$(_OK)✅ Backend setup complete. Run 'make backend-dev' to start the dev server.$(_RESET)"
-
-setup-project: setup-frontend setup-backend ## Full first-run project setup: check → install → prepare → dev → test
-	@echo -e "$(_OK)✅ Project setup complete. Run 'make frontend-dev' to start the dev server.$(_RESET)"
-
-clean: frontend-clean backend-clean ## Remove all project artifacts (includes Docker images)
-	@echo -e "$(_WARN)▶ Cleaning project artifacts…$(_RESET)"
-	@docker compose down -v
-	@echo -e "$(_OK)✅ All project artifacts cleaned."
+	@echo -e "$(_OK)✅ Backend artifacts cleaned."
 
 # --------------------------------------------------------------------
 # Docker targets (orchestrated via docker-compose)
 # --------------------------------------------------------------------
-docker-build: ## Build all Docker images
-	@echo -e "$(_INFO)▶ Building Docker images…$(_RESET)"
-	@cd $(BACKEND_DIR) && make docker-build
-	@cd $(FRONTEND_DIR) && make docker-build
-	@echo -e "$(_OK)✅ All Docker images built."
 
-docker-test: ## Run all tests in Docker environment
+fullstack-test: ## Run all tests in Docker environment
 	@echo -e "$(_INFO)▶ Running backend tests in Docker…$(_RESET)"
-	@cd $(BACKEND_DIR) && make docker-test
+	@cd $(BACKEND_DIR) && make test
 	@echo -e "$(_INFO)▶ Running frontend tests in Docker…$(_RESET)"
-	@cd $(FRONTEND_DIR) && make docker-test
+	@cd $(FRONTEND_DIR) && make test
 	@echo -e "$(_OK)✅ All Docker tests completed."
 
-docker-shell-backend: ## Open shell in backend container
-	@cd $(BACKEND_DIR) && make docker-shell
+fullstack-shell: ## Open shell in backend and frontend container
+	@echo -e "$(_INFO)▶ Opening shell in backend container…$(_RESET)"
+	@cd $(BACKEND_DIR) && make shell
+	@echo -e "$(_INFO)▶ Opening shell in frontend container…$(_RESET)"
+	@cd $(FRONTEND_DIR) && make shell
 
-docker-shell-frontend: ## Open shell in frontend container
-	@cd $(FRONTEND_DIR) && make docker-shell
-
-# ========================================================
+# --------------------------------------------------------------------
 # Docker commands
-# ========================================================
-docker-up: ## Build and start all Docker services (detached)
+# --------------------------------------------------------------------
+docker-up: ## Build and start all Docker services (detached) fullstack mode
 	@echo -e "$(_INFO)▶ Building and starting Docker services…$(_RESET)"
 	@if [ ! -f .env ]; then \
 		echo -e "$(_WARN)⚠ .env not found, copying from .env.example$(_RESET)" && \
@@ -196,28 +237,12 @@ docker-restart: ## Restart all running services
 docker-logs: ## Tail logs for all services
 	@docker compose logs -f --tail=100
 
-docker-logs-backend: ## Tail backend logs only
-	@docker compose logs -f --tail=100 backend
-
-docker-logs-frontend: ## Tail frontend logs only
-	@docker compose logs -f --tail=100 frontend
-
 docker-ps: ## List running Docker services
 	@docker compose ps
 
 docker-health: ## Check health status of all services
 	@echo -e "$(_INFO)▶ Service health:$(_RESET)"
 	@docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
-
-docker-migrate-up: ## Run Alembic migrations inside the backend container
-	@echo -e "$(_INFO)▶ Running database migrations…$(_RESET)"
-	@docker compose exec backend alembic upgrade head
-	@echo -e "$(_OK)✅ Migrations applied.$(_RESET)"
-
-docker-migrate-down: ## Rollback last Alembic migration inside the backend container
-	@echo -e "$(_WARN)▶ Rolling back last migration…$(_RESET)"
-	@docker compose exec backend alembic downgrade -1
-	@echo -e "$(_OK)✅ Migration rolled back.$(_RESET)"
 
 docker-clean: docker-down docker-down-volumes ## Stop services and remove all data + images
 	@echo -e "$(_INFO)▶ Removing Docker images…$(_RESET)"
