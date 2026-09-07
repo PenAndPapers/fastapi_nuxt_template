@@ -12,4 +12,4 @@ app.include_router(api_router, prefix=settings.api_prefix)
 
 @app.get("/", tags=["root"])
 def root() -> dict[str, str]:
-    return {"message": settings.app_name}
+  return {"message": settings.app_name}

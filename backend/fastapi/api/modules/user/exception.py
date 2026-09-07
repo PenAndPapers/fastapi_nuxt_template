@@ -1,6 +1,6 @@
 class UserError(Exception):
-    pass
+  pass
 
 
 class UserNotFoundExceptionError(UserError):
-    pass
+  pass

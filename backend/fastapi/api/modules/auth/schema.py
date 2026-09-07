@@ -3,21 +3,21 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class AuthRegisterSchema(UserCreateSchema):
-    pass
+  pass
 
 
 class AuthLoginSchema(BaseModel):
-    email: EmailStr
-    password: str = Field(..., min_length=8, max_length=20, description="Password")
+  email: EmailStr
+  password: str = Field(..., min_length=8, max_length=20, description="Password")
 
 
 class AuthForgetPasswordSchema(BaseModel):
-    email: EmailStr
+  email: EmailStr
 
 
 class AuthResetPasswordSchema(BaseModel):
-    email: EmailStr
-    password: str = Field(..., min_length=8, max_length=20, description="New password")
-    confirm_password: str = Field(
-        ..., min_length=8, max_length=20, description="Confirm new password"
-    )
+  email: EmailStr
+  password: str = Field(..., min_length=8, max_length=20, description="New password")
+  confirm_password: str = Field(
+    ..., min_length=8, max_length=20, description="Confirm new password"
+  )

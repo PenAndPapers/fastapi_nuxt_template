@@ -8,5 +8,5 @@ from main import app
 
 @pytest.fixture()
 def client() -> Generator[TestClient, None, None]:
-    with TestClient(app) as c:
-        yield c
+  with TestClient(app) as c:
+    yield c
