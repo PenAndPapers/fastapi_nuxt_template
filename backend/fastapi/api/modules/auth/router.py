@@ -1,6 +1,24 @@
+import jwt
 from fastapi import APIRouter
+from pydantic import BaseModel
+
 
 router = APIRouter()
+
+
+class JwtPayload(BaseModel):
+  sub: str
+  name: str
+  admin: bool
+
+
+class SigningKeyResponse(BaseModel):
+  token: str
+  decoded: JwtPayload
+
+
+PRIVATE_KEY = open("/app/certs/private_key.pem", "r").read()
+PUBLIC_KEY = open("/app/certs/public_key.pem", "r").read()
 
 
 @router.post("/register", summary="Register a new user")
@@ -64,3 +82,16 @@ def verify_email() -> dict[str, str]:
   # This endpoint should handle user email verification, including validating input,
   # updating user's email status and returning success message.
   return {"message": "verify email endpoint"}
+
+
+@router.get("/signing-key", summary="Get signing key")
+def get_signing_key() -> SigningKeyResponse:
+  payload = {"sub": "1234567890", "name": "John Doe", "admin": True}
+
+  # Encode payload into a JWT string using private key
+  token = jwt.encode(payload, PRIVATE_KEY, algorithm="ES256")
+
+  # Decode and verify the JWT string using public key
+  decoded = jwt.decode(token, PUBLIC_KEY, algorithms=["ES256"])
+
+  return SigningKeyResponse(token=token, decoded=JwtPayload(**decoded))

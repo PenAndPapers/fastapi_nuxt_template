@@ -23,9 +23,8 @@ COPY backend/fastapi/pyproject.toml backend/fastapi/uv.lock ./
 RUN uv pip install --system --target=/install -r pyproject.toml
 RUN uv pip install --system --target=/install --group dev
 
-# Copy remaining source code and install project itself
+# Copy remaining source code
 COPY backend/fastapi/ ./
-RUN uv pip install --system --target=/install --no-deps .
 
 
 # ---- Production stage ----
@@ -54,4 +53,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
