@@ -81,16 +81,19 @@ migrate-pending: $(MIGRATION_PREREQS) ## Show pending migrations (head vs curren
 	@echo "▶ Showing pending migrations (head vs current) inside the backend service..."
 	docker compose exec backend alembic heads
 
-generate-signing-key: ## Generate a new ES256 key pair in the /certs directory
+generate-signing-key: ## Generate a new ES256 key pair in /app/certs
 	@echo "▶ Generating new ES256 signing keys..."
-	@docker compose exec -u root backend sh -c 'if [ ! -d /certs ]; then echo "Creating /certs directory..."; mkdir -p /certs; fi'
-	@echo "Generating private key..."
-	docker compose exec -u root backend openssl ecparam -name prime256v1 -genkey -noout -out /app/certs/private_key.pem
-	@echo "Extracting public key..."
-	docker compose exec -u root backend openssl ec -in /app/certs/private_key.pem -pubout -out /app/certs/public_key.pem
-	@echo "Restricting permissions on private key and public key..."
-	docker compose exec -u root backend chmod 600 /app/certs/private_key.pem
-	docker compose exec -u root backend chmod 644 /app/certs/public_key.pem
+	@docker compose exec -u root backend sh -c '\
+		if [ -f /app/certs/private_key.pem ]; then \
+			echo "⚠️ Error: /app/certs/private_key.pem already exists! Remove or backup manually to avoid invalidating active sessions."; \
+			exit 1; \
+		fi; \
+		mkdir -p /app/certs && \
+		openssl ecparam -name prime256v1 -genkey -noout -out /app/certs/private_key.pem && \
+		openssl ec -in /app/certs/private_key.pem -pubout -out /app/certs/public_key.pem && \
+		chmod 600 /app/certs/private_key.pem && \
+		chmod 644 /app/certs/public_key.pem \
+	'
 	@echo "✅ New signing keys generated in /app/certs"
 
 # --------------------------------------------------------------------
