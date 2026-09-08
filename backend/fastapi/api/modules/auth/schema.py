@@ -2,6 +2,17 @@ from modules.user.schema import UserCreateSchema
 from pydantic import BaseModel, EmailStr, Field
 
 
+class JwtPayload(BaseModel):
+  sub: str
+  name: str
+  admin: bool
+
+
+class SigningKeyResponse(BaseModel):
+  token: str
+  decoded: JwtPayload
+
+
 class AuthRegisterSchema(UserCreateSchema):
   pass
 

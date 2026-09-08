@@ -1,19 +1,9 @@
-import jwt
 from fastapi import APIRouter
-from pydantic import BaseModel
+
+from .dependency import JwtServiceDep
+from .schema import JwtPayload, SigningKeyResponse
 
 router = APIRouter()
-
-
-class JwtPayload(BaseModel):
-  sub: str
-  name: str
-  admin: bool
-
-
-class SigningKeyResponse(BaseModel):
-  token: str
-  decoded: JwtPayload
 
 
 PRIVATE_KEY = open("/app/certs/private_key.pem").read()
@@ -84,13 +74,13 @@ def verify_email() -> dict[str, str]:
 
 
 @router.get("/signing-key", summary="Get signing key")
-def get_signing_key() -> SigningKeyResponse:
+def get_signing_key(jwt_service: JwtServiceDep) -> SigningKeyResponse:
   payload = {"sub": "1234567890", "name": "John Doe", "admin": True}
 
   # Encode payload into a JWT string using private key
-  token = jwt.encode(payload, PRIVATE_KEY, algorithm="ES256")
+  token = jwt_service.encode(payload)
 
   # Decode and verify the JWT string using public key
-  decoded = jwt.decode(token, PUBLIC_KEY, algorithms=["ES256"])
+  decoded = jwt_service.decode(token)
 
   return SigningKeyResponse(token=token, decoded=JwtPayload(**decoded))

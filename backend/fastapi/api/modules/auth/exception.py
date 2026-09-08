@@ -28,10 +28,19 @@ class UnauthorizedAccessError(AppExceptionError):
     super().__init__(self.message)
 
 
-class InvalidTokenError(AppExceptionError):
-  status_code = 400
-  error_code = "INVALID_TOKEN"
+class JwtExpiredError(AppExceptionError):
+  status_code = 401
+  error_code = "JWT_EXPIRED"
 
   def __init__(self, message: str | None) -> None:
-    self.message = message or "Error: Invalid token"
+    self.message = message or "Error: JWT expired"
+    super().__init__(self.message)
+
+
+class JwtInvalidTokenError(AppExceptionError):
+  status_code = 401
+  error_code = "JWT_INVALID_TOKEN"
+
+  def __init__(self, message: str | None) -> None:
+    self.message = message or "Error: JWT invalid token"
     super().__init__(self.message)
