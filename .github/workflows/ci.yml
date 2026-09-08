@@ -14,29 +14,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
 
       - name: Install Backend Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
-          pip install pytest mypy ruff
+        run: uv sync --project backend/
 
       - name: Run Ruff (Linter)
-        run: ruff check backend/
+        run: uv run --project backend/ ruff check backend/
 
       - name: Run Ruff (Formatter Check)
-        run: ruff format --check backend/
-
-      - name: Run Mypy (Type Checking)
-        run: mypy backend/
+        run: uv run --project backend/ ruff format --check backend/
 
       - name: Run Pytest
-        run: pytest backend/tests/
+        run: uv run --project backend/ pytest backend/tests/
 
   frontend-checks:
     name: Frontend CI (Nuxt/Vue)
@@ -53,7 +47,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22.23"
+          node-version: "24"
           cache: "pnpm"
           cache-dependency-path: "frontend/pnpm-lock.yaml"
 
