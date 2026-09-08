@@ -1,5 +1,7 @@
 import jwt
 
+from core.config import Settings
+
 from ..exception import JwtExpiredError, JwtInvalidTokenError
 from ..schema import JwtPayload
 
@@ -8,13 +10,15 @@ from ..schema import JwtPayload
 PRIVATE_KEY = open("/app/certs/private_key.pem").read()
 PUBLIC_KEY = open("/app/certs/public_key.pem").read()
 
+settings = Settings()
+
 
 class JwtService:
   """Handles encoding and decoding of JSON Web Tokens (JWT) using asymmetric cryptography."""
 
   def __init__(self) -> None:
     # ES256 (ECDSA using P-256 and SHA-256) requires public/private key pairs
-    self.algorithm = "ES256"
+    self.algorithm = settings.jwt_algorithm
 
   def encode(self, payload: JwtPayload) -> str:
     """Encode a payload dictionary or model into a signed JWT string.
