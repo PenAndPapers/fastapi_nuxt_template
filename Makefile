@@ -134,6 +134,10 @@ backend-lint:
 	@cd $(BACKEND_DIR) && make lint
 	@echo -e "$(_OK)✅ Backend lint completed."
 
+backend-lint-fix:
+	@cd $(BACKEND_DIR) && make lint-fix
+	@echo -e "$(_OK)✅ Backend lint fixed."
+
 backend-migrate-create:
 	@cd $(BACKEND_DIR) && make migrate-create
 	@echo -e "$(_OK)✅ Backend migration created."

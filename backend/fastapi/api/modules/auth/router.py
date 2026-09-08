@@ -2,7 +2,6 @@ import jwt
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-
 router = APIRouter()
 
 
@@ -17,8 +16,8 @@ class SigningKeyResponse(BaseModel):
   decoded: JwtPayload
 
 
-PRIVATE_KEY = open("/app/certs/private_key.pem", "r").read()
-PUBLIC_KEY = open("/app/certs/public_key.pem", "r").read()
+PRIVATE_KEY = open("/app/certs/private_key.pem").read()
+PUBLIC_KEY = open("/app/certs/public_key.pem").read()
 
 
 @router.post("/register", summary="Register a new user")
