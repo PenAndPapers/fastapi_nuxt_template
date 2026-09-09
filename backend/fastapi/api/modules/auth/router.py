@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from .dependency import JwtServiceDep, PasswordServiceDep
-from .schema import JwtPayload, SigningKeyResponse
+from .schema import JwtPayload, SigningKeyResponse, TokenType
 
 router = APIRouter()
 
@@ -71,15 +71,50 @@ def verify_email() -> dict[str, str]:
 
 @router.get("/signing-key", summary="Get signing key")
 def get_signing_key(jwt_service: JwtServiceDep) -> SigningKeyResponse:
-  payload = {"sub": "1234567890", "name": "John Doe", "admin": True}
+  payload = JwtPayload(
+    token_type=TokenType.ACCESS,
+    exp=1791524531,
+    nbf=1788932531,
+    iat=1788932531,
+    iss="http://localhost:8000",
+    aud="http://localhost:3000",
+    sub="a8s9675d98g76as78dgas8",
+    jti="a897s6d6h7986asdfa7s8d",
+  )
 
   # Encode payload into a JWT string using private key
   token = jwt_service.encode(payload)
 
   # Decode and verify the JWT string using public key
-  decoded = jwt_service.decode(token)
+  decoded = jwt_service.decode(token, audience=payload.aud, issuer=payload.iss)
 
   return SigningKeyResponse(token=token, decoded=JwtPayload(**decoded))
+
+
+@router.get("/jwt", summary="Get JWT token")
+def get_jwt_token(jwt_service: JwtServiceDep) -> dict[str, str | int]:
+  payload = {"sub": "user_uuid_a8s9675d98g76as78dgas8"}
+  jti = jwt_service.get_token_jti()
+
+  access_token_claims = jwt_service.get_default_jwt_claims(TokenType.ACCESS)
+  access_token_claims["token_type"] = TokenType.ACCESS.value
+  access_token_claims["sub"] = payload["sub"]
+  access_token_claims["jti"] = jti
+
+  refresh_token_claims = jwt_service.get_default_jwt_claims(TokenType.REFRESH)
+  refresh_token_claims["token_type"] = TokenType.REFRESH.value
+  refresh_token_claims["sub"] = payload["sub"]
+  refresh_token_claims["jti"] = jti
+
+  access_token = jwt_service.encode(JwtPayload(**access_token_claims))
+  refresh_token = jwt_service.encode(JwtPayload(**refresh_token_claims))
+
+  return {
+    "access_token": access_token,
+    "exp": access_token_claims["exp"],
+    "refresh_token": refresh_token,
+    "refresh_exp": refresh_token_claims["exp"],
+  }
 
 
 @router.post("/hash-password", summary="Hash password")
