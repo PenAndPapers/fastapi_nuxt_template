@@ -1,12 +1,28 @@
-from pydantic import BaseModel, EmailStr, Field
+from enum import StrEnum
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from api.modules.user.schema import UserCreateSchema
 
 
+class TokenType(StrEnum):
+  ACCESS = "access"
+  REFRESH = "refresh"
+  CONFIRM_EMAIL = "confirm_email"
+  PASSWORD_UPDATE = "password_update"  # noqa: S105
+
+
 class JwtPayload(BaseModel):
-  sub: str
-  name: str
-  admin: bool
+  token_type: TokenType
+  exp: int  # expiration time (timestamp)
+  nbf: int  # valid before time (timestamp)
+  iat: int  # issued at time (timestamp)
+  iss: str  # issuer the backend e.g http://localhost:8000, http://app.dev
+  aud: str  # intended audience frontend or other service e.g http://localhost:8000, http://api-service.com
+  sub: str  # user's uuid who owns the token
+  jti: str  # unique token identifier for revocation (uuid)
+
+  model_config = ConfigDict(use_enum_values=True)
 
 
 class SigningKeyResponse(BaseModel):

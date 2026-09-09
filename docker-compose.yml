@@ -71,7 +71,6 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
       ENVIRONMENT: ${ENVIRONMENT:-development}
-      BACKEND_SECRET_KEY: ${BACKEND_SECRET_KEY:-changeme}
       BACKEND_ALLOWED_ORIGINS: ${BACKEND_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
       # Prevent __pycache__ from being written to bind-mounted migrations directory
       PYTHONDONTWRITEBYTECODE: "1"

@@ -51,18 +51,20 @@ class Settings(BaseSettings):
     return f"redis://{auth}{self.redis_host}:{self.redis_port}/0"
 
   # ---- Security ----
-  secret_key: str = Field(default="changeme", env="BACKEND_SECRET_KEY")
   jwt_algorithm: str = Field(default="ES256", env="JWT_ALGORITHM")
-  jwt_secret_key: str = Field(default="changeme", env="JWT_SECRET_KEY")
-  access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
-  refresh_token_expire_minutes: int = Field(default=1440, env="REFRESH_TOKEN_EXPIRE_MINUTES")
+  jwt_issuer: str = Field(default="http://localhost:8000", env="JWT_ISSUER")
+  jwt_audience: str = Field(default="http://localhost:3000", env="JWT_AUDIENCE")
+  access_token_expire_minutes: int = Field(default=15, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+  refresh_token_expire_days: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
   password_reset_token_expire_minutes: int = Field(
     default=15, env="PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"
   )
-  email_verification_token_expire_minutes: int = Field(
-    default=10080, env="EMAIL_VERIFICATION_TOKEN_EXPIRE_MINUTES"
+  email_verification_token_expire_days: int = Field(
+    default=7, env="EMAIL_VERIFICATION_TOKEN_EXPIRE_DAYS"
   )
   otp_expire_seconds: int = Field(default=30, env="OTP_EXPIRE_SECONDS")
+  public_key_path: Path = Field(default_factory=lambda: Path("/app/certs/public_key.pem"))
+  private_key_path: Path = Field(default_factory=lambda: Path("/app/certs/private_key.pem"))
   allowed_origins: list[str] = Field(
     default_factory=lambda: [
       "http://localhost:3000",
@@ -70,9 +72,6 @@ class Settings(BaseSettings):
     ],
     env="BACKEND_ALLOWED_ORIGINS",
   )
-
-  public_key_path: Path = Field(default_factory=lambda: Path("/app/certs/public_key.pem"))
-  private_key_path: Path = Field(default_factory=lambda: Path("/app/certs/private_key.pem"))
 
 
 @lru_cache
