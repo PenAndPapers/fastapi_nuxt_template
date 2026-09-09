@@ -21,16 +21,16 @@ jobs:
           cache-dependency-glob: "backend/uv.lock"
 
       - name: Install Backend Dependencies
-        run: uv sync --project backend/
+        run: uv sync --project backend/fastapi/
 
       - name: Run Ruff (Linter)
-        run: uv run --project backend/ ruff check backend/
+        run: uv run --project backend/fastapi/ ruff check backend/fastapi/
 
       - name: Run Ruff (Formatter Check)
-        run: uv run --project backend/ ruff format --check backend/
+        run: uv run --project backend/fastapi/ ruff format --check backend/fastapi/
 
       - name: Run Pytest
-        run: uv run --project backend/ pytest backend/tests/
+        run: uv run --project backend/fastapi/ pytest backend/fastapi/tests/
 
   frontend-checks:
     name: Frontend CI (Nuxt/Vue)
@@ -49,12 +49,12 @@ jobs:
         with:
           node-version: "24"
           cache: "pnpm"
-          cache-dependency-path: "frontend/pnpm-lock.yaml"
+          cache-dependency-path: "frontend/nuxt4/pnpm-lock.yaml"
 
       - name: Install Frontend Dependencies
-        run: pnpm --prefix frontend install
+        run: pnpm --prefix frontend/nuxt4 install
 
       - name: Run Type Check & Build
         run: |
-          pnpm --prefix frontend run typecheck || true
-          pnpm --prefix frontend run build
+          pnpm --prefix frontend/nuxt4 run typecheck || true
+          pnpm --prefix frontend/nuxt4 run build
