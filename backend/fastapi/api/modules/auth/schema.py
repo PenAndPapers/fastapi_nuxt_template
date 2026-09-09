@@ -11,6 +11,8 @@ class TokenType(StrEnum):
   CONFIRM_EMAIL = "confirm_email"
   PASSWORD_UPDATE = "password_update"  # noqa: S105
 
+from api.modules.user.schema import UserCreateSchema
+
 
 class JwtPayload(BaseModel):
   token_type: TokenType
