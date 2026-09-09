@@ -5,11 +5,6 @@ from core.config import Settings
 from ..exception import JwtExpiredError, JwtInvalidTokenError
 from ..schema import JwtPayload
 
-# Load RSA/ECDSA keys at module startup for fast token validation
-# Note: Ensure these paths exist or are injected via environment/secrets manager
-PRIVATE_KEY = open("/app/certs/private_key.pem").read()
-PUBLIC_KEY = open("/app/certs/public_key.pem").read()
-
 settings = Settings()
 
 
