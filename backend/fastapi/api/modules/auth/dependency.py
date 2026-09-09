@@ -5,7 +5,7 @@ from fastapi import Depends
 from core.database import DatabaseDep
 
 from .jwt.service import JwtService
-from .repo import AuthRepository
+from .repository import AuthRepository
 from .service import AuthService
 
 
