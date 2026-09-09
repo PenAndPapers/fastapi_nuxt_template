@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from dotenv import find_dotenv
 from pydantic import Field, computed_field
@@ -69,6 +70,9 @@ class Settings(BaseSettings):
     ],
     env="BACKEND_ALLOWED_ORIGINS",
   )
+
+  public_key_path: Path = Field(default_factory=lambda: Path("/app/certs/public_key.pem"))
+  private_key_path: Path = Field(default_factory=lambda: Path("/app/certs/private_key.pem"))
 
 
 @lru_cache

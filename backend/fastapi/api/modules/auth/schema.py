@@ -1,5 +1,6 @@
-from modules.user.schema import UserCreateSchema
 from pydantic import BaseModel, EmailStr, Field
+
+from api.modules.user.schema import UserCreateSchema
 
 
 class JwtPayload(BaseModel):
