@@ -5,6 +5,7 @@ from fastapi import Depends
 from core.database import DatabaseDep
 
 from .jwt.service import JwtService
+from .password.service import PasswordService
 from .repository import AuthRepository
 from .service import AuthService
 
@@ -27,3 +28,4 @@ AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 
 # 3. Stateless Services (no state or DB dependencies needed)
 JwtServiceDep = Annotated[JwtService, Depends(JwtService)]
+PasswordServiceDep = Annotated[PasswordService, Depends(PasswordService)]

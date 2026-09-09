@@ -21,6 +21,8 @@ COPY backend/fastapi/pyproject.toml backend/fastapi/uv.lock ./
 
 # Install production dependencies only (dev dependencies excluded in production)
 RUN uv pip install --system --target=/install -r pyproject.toml
+# Install test dependencies for development/testing inside container
+RUN uv pip install --system --target=/install pytest pytest-asyncio httpx
 
 # Copy remaining source code
 COPY backend/fastapi/ .

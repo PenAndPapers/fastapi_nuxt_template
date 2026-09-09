@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import BigInteger, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.base_model import AppBaseModel
+from core.model import AppBaseModel
 
 if TYPE_CHECKING:
   from api.modules.user.model import User

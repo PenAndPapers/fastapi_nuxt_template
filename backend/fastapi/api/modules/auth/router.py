@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .dependency import JwtServiceDep
+from .dependency import JwtServiceDep, PasswordServiceDep
 from .schema import JwtPayload, SigningKeyResponse
 
 router = APIRouter()
@@ -84,3 +84,10 @@ def get_signing_key(jwt_service: JwtServiceDep) -> SigningKeyResponse:
   decoded = jwt_service.decode(token)
 
   return SigningKeyResponse(token=token, decoded=JwtPayload(**decoded))
+
+
+@router.post("/hash-password", summary="Hash password")
+def hash_password(password_service: PasswordServiceDep) -> dict[str, str | bool]:
+  hashed_password = password_service.password_hash("3x@mPle@t35t")
+  verify_password = password_service.verify_password("3x@mPle@t35t", hashed_password)
+  return {"hashed_password": hashed_password, "is_match": verify_password}
