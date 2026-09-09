@@ -6,10 +6,6 @@ from .schema import JwtPayload, SigningKeyResponse
 router = APIRouter()
 
 
-PRIVATE_KEY = open("/app/certs/private_key.pem").read()
-PUBLIC_KEY = open("/app/certs/public_key.pem").read()
-
-
 @router.post("/register", summary="Register a new user")
 def register() -> dict[str, str]:
   # TODO: Add user registration logic
