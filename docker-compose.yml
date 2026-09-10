@@ -45,7 +45,7 @@ services:
       - backend
 
   mailpit:
-    image: axllent/mailpit:1.20-alpine
+    image: axllent/mailpit:latest
     container_name: fastapi_nuxt_mailpit
     ports:
       - "${MAILPIT_SMTP_PORT:-1025}:1025"
@@ -71,7 +71,6 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
       ENVIRONMENT: ${ENVIRONMENT:-development}
-      BACKEND_SECRET_KEY: ${BACKEND_SECRET_KEY:-changeme}
       BACKEND_ALLOWED_ORIGINS: ${BACKEND_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
       # Prevent __pycache__ from being written to bind-mounted migrations directory
       PYTHONDONTWRITEBYTECODE: "1"
@@ -79,13 +78,14 @@ services:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ./backend/fastapi:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 10s
       timeout: 5s
       retries: 5
