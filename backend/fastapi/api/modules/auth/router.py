@@ -80,6 +80,7 @@ def get_signing_key(jwt_service: JwtServiceDep) -> SigningKeyResponse:
     aud="http://localhost:3000",
     sub="a8s9675d98g76as78dgas8",
     jti="a897s6d6h7986asdfa7s8d",
+    family_id="a8967sbhdf67asd6f978a6s5dg",
   )
 
   # Encode payload into a JWT string using private key
