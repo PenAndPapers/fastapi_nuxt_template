@@ -3,16 +3,20 @@ updates:
   # 1. GitHub Actions Workflows
   - package-ecosystem: "github-actions"
     directory: "/"
+    open-pull-requests-limit: 10
     schedule:
       interval: "weekly"
       day: "monday"
 
   # 2. Frontend (Nuxt/Vue via pnpm)
   - package-ecosystem: "npm"
-    directory: "/frontend"
+    directory: "/frontend/nuxt4"
     schedule:
       interval: "weekly"
       day: "monday"
+    labels:
+      - "frontend"
+      - "dependencies"
     groups:
       frontend-dependencies:
         patterns:
@@ -20,10 +24,13 @@ updates:
 
   # 3. Backend (FastAPI via pip/requirements/pyproject)
   - package-ecosystem: "pip"
-    directory: "/backend"
+    directory: "/backend/fastapi"
     schedule:
       interval: "weekly"
       day: "monday"
+    labels:
+      - "backend"
+      - "dependencies"
     groups:
       backend-dependencies:
         patterns:
@@ -31,7 +38,66 @@ updates:
 
   # 4. Docker Infrastructure
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/infrastructure/fastapi"
     schedule:
       interval: "weekly"
       day: "monday"
+    labels:
+      - "docker"
+      - "dependencies"
+    groups:
+      docker-infrastructure:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/infrastructure/nginx"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "docker"
+      - "dependencies"
+    groups:
+      docker-infrastructure:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/infrastructure/nuxt4"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "docker"
+      - "dependencies"
+    groups:
+      docker-infrastructure:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/infrastructure/postgres"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "docker"
+      - "dependencies"
+    groups:
+      docker-infrastructure:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/infrastructure/redis"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "docker"
+      - "dependencies"
+    groups:
+      docker-infrastructure:
+        patterns:
+          - "*"

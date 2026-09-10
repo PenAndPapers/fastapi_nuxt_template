@@ -23,6 +23,11 @@ jobs:
       - name: Install Backend Dependencies
         run: uv sync --project backend/fastapi/
 
+      # --- Add Audit Step Here ---
+      - name: Audit Python Dependencies
+        run: uv pip audit --project backend/fastapi/
+        # Alternatively, if using uv lock auditing: uv run pip-audit
+
       - name: Run Ruff (Linter)
         run: uv run --project backend/fastapi/ ruff check backend/fastapi/
 
@@ -54,7 +59,26 @@ jobs:
       - name: Install Frontend Dependencies
         run: pnpm --prefix frontend/nuxt4 install
 
+      # --- Add Audit Step Here ---
+      - name: Audit Frontend Dependencies
+        run: pnpm --prefix frontend/nuxt4 audit --audit-level high
+
       - name: Run Type Check & Build
         run: |
           pnpm --prefix frontend/nuxt4 run typecheck || true
           pnpm --prefix frontend/nuxt4 run build
+
+  docker-security-check:
+    name: Docker Security & Lint Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Scan Dockerfiles for Vulnerabilities & Misconfigurations
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: './infrastructure'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
