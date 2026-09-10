@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 # Install system build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,7 +29,7 @@ COPY backend/fastapi/ .
 
 
 # ---- Production stage ----
-FROM python:3.12-slim AS production
+FROM python:3.14-slim AS production
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
