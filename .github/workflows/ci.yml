@@ -24,7 +24,7 @@ jobs:
         run: uv sync --project backend/fastapi/
 
       - name: Audit Python Dependencies
-        run: uv audit --lockfile backend/fastapi/uv.lock
+        run: uv audit --directory backend/fastapi/
 
       - name: Run Ruff (Linter)
         run: uv run --project backend/fastapi/ ruff check backend/fastapi/
