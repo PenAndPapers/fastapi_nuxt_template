@@ -8,5 +8,8 @@ ENV POSTGRES_INITDB_ARGS="-c max_connections=200 -c shared_buffers=256MB"
 
 EXPOSE 5432
 
+# Switch explicitly to the built-in non-root postgres user
+USER postgres
+
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
     CMD pg_isready -U postgres || exit 1

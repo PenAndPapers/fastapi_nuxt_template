@@ -23,10 +23,8 @@ jobs:
       - name: Install Backend Dependencies
         run: uv sync --project backend/fastapi/
 
-      # --- Add Audit Step Here ---
       - name: Audit Python Dependencies
-        run: uv pip audit --project backend/fastapi/
-        # Alternatively, if using uv lock auditing: uv run pip-audit
+        run: uv audit --lockfile backend/fastapi/uv.lock
 
       - name: Run Ruff (Linter)
         run: uv run --project backend/fastapi/ ruff check backend/fastapi/
