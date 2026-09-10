@@ -93,18 +93,22 @@ def get_signing_key(jwt_service: JwtServiceDep) -> SigningKeyResponse:
 
 @router.get("/jwt", summary="Get JWT token")
 def get_jwt_token(jwt_service: JwtServiceDep) -> dict[str, str | int]:
-  payload = {"sub": "user_uuid_a8s9675d98g76as78dgas8"}
-  jti = jwt_service.get_token_jti()
+  payload = {"sub": "user_uuid_a8s9675d98g76as78dgas8"}  # user uuid
+  family_id = jwt_service.get_token_jti()  # family identifier
 
+  # Generate access token
   access_token_claims = jwt_service.get_default_jwt_claims(TokenType.ACCESS)
   access_token_claims["token_type"] = TokenType.ACCESS.value
   access_token_claims["sub"] = payload["sub"]
-  access_token_claims["jti"] = jti
+  access_token_claims["jti"] = jwt_service.get_token_jti()
+  access_token_claims["family_id"] = family_id
 
+  # Generate refresh token
   refresh_token_claims = jwt_service.get_default_jwt_claims(TokenType.REFRESH)
   refresh_token_claims["token_type"] = TokenType.REFRESH.value
   refresh_token_claims["sub"] = payload["sub"]
-  refresh_token_claims["jti"] = jti
+  refresh_token_claims["jti"] = jwt_service.get_token_jti()
+  refresh_token_claims["family_id"] = family_id
 
   access_token = jwt_service.encode(JwtPayload(**access_token_claims))
   refresh_token = jwt_service.encode(JwtPayload(**refresh_token_claims))

@@ -42,7 +42,7 @@ indent-width = 2
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "N", "ANN", "S", "RUF"]
-ignore = ["B008", "S101"]
+ignore = ["B008", "S101", "E501"]
 
 [tool.ruff.format]
 quote-style = "double"

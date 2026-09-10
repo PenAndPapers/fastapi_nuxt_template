@@ -19,12 +19,13 @@ class JwtService:
     self._algorithm = settings.jwt_algorithm
     self._private_key = settings.private_key_path.read_text()
     self._public_key = settings.public_key_path.read_text()
+
     self._jwt_issuer = settings.jwt_issuer
     self._jwt_audience = settings.jwt_audience
     self._jwt_expiration_seconds = settings.access_token_expire_minutes * 60
-    self._jwt_refresh_expiration_seconds = settings.refresh_token_expire_days * 24 * 60
+    self._jwt_refresh_expiration_seconds = settings.refresh_token_expire_days * 24 * 60 * 60
     self._jwt_confirm_email_expiration_seconds = (
-      settings.email_verification_token_expire_days * 24 * 60
+      settings.email_verification_token_expire_days * 24 * 60 * 60
     )
     self._jwt_password_update_expiration_seconds = settings.password_reset_token_expire_minutes * 60
 
