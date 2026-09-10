@@ -1,4 +1,4 @@
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 
 # Create non-root user nginx if not already present
 RUN addgroup -g 1000 nginx-user || true && adduser -u 1000 -G nginx-user -s /bin/sh -D nginx-user || true
