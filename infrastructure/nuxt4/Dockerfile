@@ -5,14 +5,14 @@ WORKDIR /app
 # Install native C++ build tools
 RUN apk add --no-cache python3 make g++ gcc
 
-# Enable Corepack
-RUN corepack enable
+# Install pnpm directly
+RUN npm install -g pnpm@latest
 
-# Copy package management files
+# Both files are required for pnpm install to work
 COPY frontend/nuxt4/package.json frontend/nuxt4/pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install --ignore-scripts
+# Strict installation using ONLY exact locked versions from pnpm-lock.yaml
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy full application source code
 COPY frontend/nuxt4/ .
