@@ -7,24 +7,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy uv binary directly from official image (faster & avoids pip overhead)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-# Enable bytecode compilation & copy-mode for performance
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy
 
-# Copy dependency definition files first for optimal layer caching
+# Copy dependency definition files
 COPY backend/fastapi/pyproject.toml backend/fastapi/uv.lock ./
 
-# Install production dependencies only (dev dependencies excluded in production)
-RUN uv pip install --system --target=/install -r pyproject.toml
-# Install test dependencies for development/testing inside container
-RUN uv pip install --system --target=/install pytest pytest-asyncio httpx
+# Create virtual environment outside /app so volumes won't overwrite it
+RUN uv venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN uv pip install -r pyproject.toml pytest pytest-asyncio httpx
 
-# Copy remaining source code
 COPY backend/fastapi/ .
 
 
@@ -36,17 +33,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user first (used in COPY chown)
 RUN useradd --create-home --shell /bin/bash --uid 1000 app
 
 WORKDIR /app
 
-# Copy installed python site-packages from builder
-COPY --from=builder --chown=app:app /install /usr/local/lib/python3.12/site-packages
-COPY --from=builder --chown=app:app /install/bin /usr/local/bin
-
-# Copy application source code
+# Copy virtualenv to /opt/venv (safe from /app volume mounts)
+COPY --from=builder --chown=app:app /opt/venv /opt/venv
 COPY --from=builder --chown=app:app /app ./
+
+ENV PATH="/opt/venv/bin:$PATH"
 
 USER app
 
