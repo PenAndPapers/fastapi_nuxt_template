@@ -1,4 +1,4 @@
-FROM redis:7-alpine
+FROM redis:8-alpine
 
 # Redis runs as non-root user by default
 # Persistence configuration is handled at runtime in docker-compose
