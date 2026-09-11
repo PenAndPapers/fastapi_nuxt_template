@@ -71,7 +71,11 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
       ENVIRONMENT: ${ENVIRONMENT:-development}
-      BACKEND_ALLOWED_ORIGINS: ${BACKEND_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
+      BACKEND_CORS_ALLOWED_ORIGINS: ${BACKEND_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080,http://localhost:8080}
+      BACKEND_CORS_TRUSTED_HOSTS: ${BACKEND_CORS_TRUSTED_HOSTS:-localhost,127.0.0.1,testserver}
+      BACKEND_CORS_CREDENTIALS: ${BACKEND_CORS_CREDENTIALS:-True}
+      BACKEND_CORS_ALLOW_METHODS: ${BACKEND_CORS_ALLOW_METHODS:-*}
+      BACKEND_CORS_ALLOW_HEADERS: ${BACKEND_CORS_ALLOW_HEADERS:-*}
       # Prevent __pycache__ from being written to bind-mounted migrations directory
       PYTHONDONTWRITEBYTECODE: "1"
     ports:

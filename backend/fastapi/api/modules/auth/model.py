@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, ClassVar, Optional
 
 from sqlalchemy import BigInteger, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -11,11 +11,10 @@ if TYPE_CHECKING:
 
 
 class Auth(AppBaseModel):
-  """
-  Refresh Tokens / Session management.
-  """
+  """User's authentication tokens."""
 
   __tablename__ = "auth_tokens"
+  __table_args__: ClassVar[dict[str, str]] = {"comment": "User's authentication tokens."}
 
   # Store hashed tokens (e.g., SHA-256 of the actual refresh token)
   token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
@@ -40,11 +39,12 @@ class Auth(AppBaseModel):
 
 
 class OneTimePin(AppBaseModel):
-  """
-  Logs and manages OTPs for authentication/MFA.
-  """
+  """Logs and manages OTPs for authentication/MFA."""
 
   __tablename__ = "one_time_pins"
+  __table_args__: ClassVar[dict[str, str]] = {
+    "comment": "Logs and manages OTPs for authentication/MFA."
+  }
 
   # Store hashed PINs to prevent DB breach exposure
   pin_hash: Mapped[str] = mapped_column(String(64), index=True)
@@ -62,11 +62,12 @@ class OneTimePin(AppBaseModel):
 
 
 class Device(AppBaseModel):
-  """
-  Logs unique user devices and session origins.
-  """
+  """Logs unique user devices and session origins."""
 
   __tablename__ = "devices"
+  __table_args__: ClassVar[dict[str, str]] = {
+    "comment": "Logs unique user devices and session origins."
+  }
 
   # Standardized fingerprinted ID or UUID from client
   client_device_id: Mapped[str] = mapped_column(String(255), index=True)

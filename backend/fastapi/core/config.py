@@ -65,16 +65,36 @@ class Settings(BaseSettings):
   otp_expire_seconds: int = Field(default=30, env="OTP_EXPIRE_SECONDS")
   public_key_path: Path = Field(default_factory=lambda: Path("/app/certs/public_key.pem"))
   private_key_path: Path = Field(default_factory=lambda: Path("/app/certs/private_key.pem"))
-  allowed_origins: list[str] = Field(
+
+  # ---- CORS ----
+  allow_origins: list[str] = Field(
     default_factory=lambda: [
       "http://localhost:3000",
+      "http://localhost:8000",
       "http://localhost:8080",
     ],
-    env="BACKEND_ALLOWED_ORIGINS",
+    env="BACKEND_CORS_ALLOWED_ORIGINS",
   )
-
-  public_key_path: Path = Field(default_factory=lambda: Path("/app/certs/public_key.pem"))
-  private_key_path: Path = Field(default_factory=lambda: Path("/app/certs/private_key.pem"))
+  allow_credentials: bool = Field(
+    default=True,
+    env="BACKEND_CORS_CREDENTIALS",
+  )
+  allow_methods: list[str] = Field(
+    default_factory=lambda: ["*"],
+    env="BACKEND_CORS_ALLOW_METHODS",
+  )
+  allow_headers: list[str] = Field(
+    default_factory=lambda: ["*"],
+    env="BACKEND_CORS_ALLOW_HEADERS",
+  )
+  trusted_hosts: list[str] = Field(
+    default_factory=lambda: [
+      "localhost",
+      "127.0.0.1",
+      "testserver",
+    ],
+    env="BACKEND_CORS_TRUSTED_HOSTS",
+  )
 
 
 @lru_cache
