@@ -3,7 +3,7 @@ PY := pnpm
 .PHONY: check-prerequisites install prepare dev build preview generate typecheck lint lint-fix format format-check clean up down test shell down
 
 # Version requirements
-NODE_MAJOR_REQUIRED := 22
+NODE_MAJOR_REQUIRED := 24
 
 # --------------------------------------------------------------------
 # Help
