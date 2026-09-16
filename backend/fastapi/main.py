@@ -1,13 +1,15 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
 
 from api import api_router
 from api.modules.user.seed import seed_rbac_data
 from core.config import get_settings
 from core.database import SessionLocal
+from core.exception import AppExceptionError
 
 settings = get_settings()
 
@@ -33,6 +35,21 @@ async def lifespan(app: FastAPI) -> None:
 
 app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan)
 
+
+# ----------------------------------
+# Exception Handlers
+# ----------------------------------
+@app.exception_handler(AppExceptionError)
+async def app_exception_handler(request: Request, exc: AppExceptionError) -> JSONResponse:
+  return JSONResponse(
+    status_code=exc.status_code,
+    content={"error_code": exc.error_code, "message": exc.message},
+  )
+
+
+# ----------------------------------
+# Middleware
+# ----------------------------------
 app.add_middleware(
   CORSMiddleware,
   allow_origins=settings.origins_list,
@@ -46,6 +63,9 @@ app.add_middleware(
   allowed_hosts=settings.trusted_hosts_list,
 )
 
+# ----------------------------------
+# Routers
+# ----------------------------------
 app.include_router(api_router, prefix=settings.api_prefix)
 
 
