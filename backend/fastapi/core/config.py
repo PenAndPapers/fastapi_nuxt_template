@@ -17,17 +17,17 @@ class Settings(BaseSettings):
   )
 
   # ---- App ----
-  app_name: str = Field(default="FastAPI App", env="APP_NAME")
-  app_env: str = Field(default="development", env="ENVIRONMENT")
-  debug: bool = Field(default=False, env="BACKEND_DEBUG")
-  api_prefix: str = Field(default="/api", env="BACKEND_API_PREFIX")
+  app_name: str = Field(default="FastAPI App", alias="APP_NAME")
+  app_env: str = Field(default="development", alias="ENVIRONMENT")
+  debug: bool = Field(default=False, alias="BACKEND_DEBUG")
+  api_prefix: str = Field(default="/api", alias="BACKEND_API_PREFIX")
 
   # ---- PostgreSQL ----
-  postgres_host: str = Field(default="localhost", env="POSTGRES_HOST")
-  postgres_port: int = Field(default=5432, env="POSTGRES_PORT")
-  postgres_user: str = Field(default="postgres_user", env="POSTGRES_USER")
-  postgres_password: str = Field(default="changeme", env="POSTGRES_PASSWORD")
-  postgres_db: str = Field(default="postgres_db", env="POSTGRES_DB")
+  postgres_host: str = Field(default="localhost", alias="POSTGRES_HOST")
+  postgres_port: int = Field(default=5432, alias="POSTGRES_PORT")
+  postgres_user: str = Field(default="postgres_user", alias="POSTGRES_USER")
+  postgres_password: str = Field(default="changeme", alias="POSTGRES_PASSWORD")
+  postgres_db: str = Field(default="postgres_db", alias="POSTGRES_DB")
 
   @computed_field  # type: ignore[prop-decorator]
   @property
@@ -39,9 +39,9 @@ class Settings(BaseSettings):
     )
 
   # ---- Redis ----
-  redis_host: str = Field(default="localhost", env="REDIS_HOST")
-  redis_port: int = Field(default=6379, env="REDIS_PORT")
-  redis_password: str | None = Field(default=None, env="REDIS_PASSWORD")
+  redis_host: str = Field(default="localhost", alias="REDIS_HOST")
+  redis_port: int = Field(default=6379, alias="REDIS_PORT")
+  redis_password: str | None = Field(default=None, alias="REDIS_PASSWORD")
 
   @computed_field  # type: ignore[prop-decorator]
   @property
@@ -51,50 +51,61 @@ class Settings(BaseSettings):
     return f"redis://{auth}{self.redis_host}:{self.redis_port}/0"
 
   # ---- Security ----
-  jwt_algorithm: str = Field(default="ES256", env="JWT_ALGORITHM")
-  jwt_issuer: str = Field(default="http://localhost:8000", env="JWT_ISSUER")
-  jwt_audience: str = Field(default="http://localhost:3000", env="JWT_AUDIENCE")
-  access_token_expire_minutes: int = Field(default=15, env="ACCESS_TOKEN_EXPIRE_MINUTES")
-  refresh_token_expire_days: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
+  jwt_algorithm: str = Field(default="ES256", alias="JWT_ALGORITHM")
+  jwt_issuer: str = Field(default="http://localhost:8000", alias="JWT_ISSUER")
+  jwt_audience: str = Field(default="http://localhost:3000", alias="JWT_AUDIENCE")
+  access_token_expire_minutes: int = Field(default=15, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+  refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
   password_reset_token_expire_minutes: int = Field(
-    default=15, env="PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"
+    default=15, alias="PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"
   )
   email_verification_token_expire_days: int = Field(
-    default=7, env="EMAIL_VERIFICATION_TOKEN_EXPIRE_DAYS"
+    default=7, alias="EMAIL_VERIFICATION_TOKEN_EXPIRE_DAYS"
   )
-  otp_expire_seconds: int = Field(default=30, env="OTP_EXPIRE_SECONDS")
+  otp_expire_seconds: int = Field(default=30, alias="OTP_EXPIRE_SECONDS")
   public_key_path: Path = Field(default_factory=lambda: Path("/app/certs/public_key.pem"))
   private_key_path: Path = Field(default_factory=lambda: Path("/app/certs/private_key.pem"))
 
   # ---- CORS ----
-  allow_origins: list[str] = Field(
-    default_factory=lambda: [
-      "http://localhost:3000",
-      "http://localhost:8000",
-      "http://localhost:8080",
-    ],
-    env="BACKEND_CORS_ALLOWED_ORIGINS",
+  allow_origins: str = Field(
+    default="http://localhost:3000,http://localhost:8000,http://localhost:8080",
+    alias="BACKEND_CORS_ALLOWED_ORIGINS",
   )
   allow_credentials: bool = Field(
     default=True,
-    env="BACKEND_CORS_CREDENTIALS",
+    alias="BACKEND_CORS_CREDENTIALS",
   )
-  allow_methods: list[str] = Field(
-    default_factory=lambda: ["*"],
-    env="BACKEND_CORS_ALLOW_METHODS",
+  allow_methods: str = Field(
+    default="*",
+    alias="BACKEND_CORS_ALLOW_METHODS",
   )
-  allow_headers: list[str] = Field(
-    default_factory=lambda: ["*"],
-    env="BACKEND_CORS_ALLOW_HEADERS",
+  allow_headers: str = Field(
+    default="*",
+    alias="BACKEND_CORS_ALLOW_HEADERS",
   )
-  trusted_hosts: list[str] = Field(
-    default_factory=lambda: [
-      "localhost",
-      "127.0.0.1",
-      "testserver",
-    ],
-    env="BACKEND_CORS_TRUSTED_HOSTS",
+  trusted_hosts: str = Field(
+    default="localhost,127.0.0.1,testserver",
+    alias="BACKEND_CORS_TRUSTED_HOSTS",
   )
+
+  @property
+  def origins_list(self) -> list[str]:
+    return [item.strip() for item in self.allow_origins.split(",") if item.strip()]
+
+  @property
+  def methods_list(self) -> list[str]:
+    return [item.strip() for item in self.allow_methods.split(",") if item.strip()]
+
+  @property
+  def headers_list(self) -> list[str]:
+    return [item.strip() for item in self.allow_headers.split(",") if item.strip()]
+
+  @property
+  def trusted_hosts_list(self) -> list[str]:
+    return [item.strip() for item in self.trusted_hosts.split(",") if item.strip()]
+
+  # ---- Seeding ----
+  seed_data: bool = Field(default=False, alias="BACKEND_SEED_DATA")
 
 
 @lru_cache

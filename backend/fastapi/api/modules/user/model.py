@@ -1,9 +1,12 @@
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.model import AppBaseModel
+
+if TYPE_CHECKING:
+  from api.modules.auth.model import Auth, Device, OneTimePin
 
 
 class User(AppBaseModel):
@@ -25,6 +28,13 @@ class User(AppBaseModel):
   # Many-to-Many relationship to Role via UserRole
   roles: Mapped[list["Role"]] = relationship(
     secondary="user_roles", back_populates="users", lazy="selectin"
+  )
+
+  # One-to-Many relationships to Auth, Device, and OneTimePin
+  tokens: Mapped[list["Auth"]] = relationship("Auth", back_populates="user", lazy="selectin")
+  devices: Mapped[list["Device"]] = relationship("Device", back_populates="user", lazy="selectin")
+  one_time_pins: Mapped[list["OneTimePin"]] = relationship(
+    "OneTimePin", back_populates="user", lazy="selectin"
   )
 
 
