@@ -83,4 +83,4 @@ class Device(AppBaseModel):
   )
 
   user: Mapped["User"] = relationship("User", back_populates="devices")
-  tokens: Mapped[list["Auth"]] = relationship("Auth", back_populates="devices")
+  tokens: Mapped[list["Auth"]] = relationship("Auth", back_populates="device")

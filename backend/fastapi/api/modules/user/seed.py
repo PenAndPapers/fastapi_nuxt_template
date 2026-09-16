@@ -70,7 +70,6 @@ def seed_rbac_data(db: Session) -> None:
   # 3. Create Sample Users
   # we use a dummy password "password123" - in real use, password service hashes it
   pw_service = PasswordService()
-  hashed_pw = pw_service.hash_password("password123")
 
   users_to_create = [
     {"email": "superadmin@example.com", "username": "superadmin", "role": "SuperAdmin"},
@@ -82,13 +81,14 @@ def seed_rbac_data(db: Session) -> None:
 
   for u_data in users_to_create:
     user = db.query(User).filter_by(email=u_data["email"]).first()
+    hashed_pw = pw_service.password_hash("password123")
     if not user:
       user = User(
         uuid=str(uuid.uuid4()),
         email=u_data["email"],
         password=hashed_pw,
-        first_name=u_data["username"],
-        last_name="",
+        first_name=u_data["username"].title(),
+        last_name="Sample",
       )
       db.add(user)
       db.flush()
