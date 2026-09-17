@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy.orm import Session
 
 from api.modules.auth.password.service import PasswordService
@@ -110,7 +108,6 @@ def seed_rbac_data(db: Session) -> None:
     hashed_pw = pw_service.password_hash("password123")
     if not user:
       user = User(
-        uuid=str(uuid.uuid4()),
         email=u_data["email"],
         password=hashed_pw,
         first_name=u_data["username"].title(),

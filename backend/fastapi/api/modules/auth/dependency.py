@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends
 
+from api.modules.user.repository import UserRepository
 from core.database import DatabaseDep
 
 from .jwt.service import JwtService
@@ -18,14 +19,25 @@ def get_auth_repository(db: DatabaseDep) -> AuthRepository:
 AuthRepositoryDep = Annotated[AuthRepository, Depends(get_auth_repository)]
 
 
-# 2. Domain Services (depends on repository)
-def get_auth_service(repository: AuthRepositoryDep) -> AuthService:
-  return AuthService(repository)
+def get_user_repository(db: DatabaseDep) -> UserRepository:
+  return UserRepository(db)
+
+
+UserRepositoryDep = Annotated[UserRepository, Depends(get_user_repository)]
+
+# 2. Stateless Services (no state or DB dependencies needed)
+JwtServiceDep = Annotated[JwtService, Depends(JwtService)]
+PasswordServiceDep = Annotated[PasswordService, Depends(PasswordService)]
+
+
+# 3. Domain Services (depends on repository)
+def get_auth_service(
+  repository: AuthRepositoryDep,
+  user_repository: UserRepositoryDep,
+  jwt_service: JwtServiceDep,
+  password_service: PasswordServiceDep,
+) -> AuthService:
+  return AuthService(repository, user_repository, jwt_service, password_service)
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
-
-
-# 3. Stateless Services (no state or DB dependencies needed)
-JwtServiceDep = Annotated[JwtService, Depends(JwtService)]
-PasswordServiceDep = Annotated[PasswordService, Depends(PasswordService)]

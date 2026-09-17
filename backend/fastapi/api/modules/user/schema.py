@@ -48,15 +48,22 @@ class EnumUserPermission(StrEnum):
 # User Request and Response Schemas
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 class UserBaseSchema(BaseModel):
-  email: EmailStr
-  first_name: str = Field(..., nullable=False, description="First name")
-  last_name: str = Field(..., nullable=False, description="Last name")
-  address: str = Field(..., nullable=True, description="Address")
-  phone_number: str = Field(..., nullable=True, description="Phone number")
+  email: EmailStr = Field(
+    ..., nullable=False, description="Email address", example="johndoe@example.com"
+  )
+  first_name: str = Field(..., nullable=False, description="First name", example="John")
+  last_name: str = Field(..., nullable=False, description="Last name", example="Doe")
+  address: str = Field(
+    ..., nullable=True, description="Address", example="123 Main St, Anytown, USA"
+  )
+  phone_number: str = Field(..., nullable=True, description="Phone number", example="+12345678901")
 
 
 class UserCreateSchema(UserBaseSchema):
-  password: str = Field(..., min_length=8, max_length=20, description="Password")
+  password: str = Field(
+    ..., min_length=8, max_length=20, description="Password", example="P@ssw0rd#123"
+  )
+  role: EnumUserRole = Field(..., description="User role", example=EnumUserRole.USER.value)
 
 
 class UserCreateResponseSchema(UserBaseSchema):
@@ -64,6 +71,8 @@ class UserCreateResponseSchema(UserBaseSchema):
   created_at: datetime
   updated_at: datetime
   deleted_at: datetime | None = None
+
+  model_config = {"from_attributes": True}
 
 
 class UserUpdateSchema(UserBaseSchema):
