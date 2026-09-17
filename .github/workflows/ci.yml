@@ -58,7 +58,8 @@ jobs:
         run: uv run --project backend/fastapi/ ruff format --check backend/fastapi/
 
       - name: Run Migrations
-        run: uv run --project backend/fastapi/ alembic -c backend/fastapi/alembic.ini upgrade head
+        working-directory: backend/fastapi
+        run: uv run alembic upgrade head
 
       - name: Run Pytest
         run: uv run --project backend/fastapi/ pytest backend/fastapi/tests/
