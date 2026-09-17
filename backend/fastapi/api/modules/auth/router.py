@@ -1,17 +1,24 @@
 from fastapi import APIRouter
 
-from .dependency import JwtServiceDep, PasswordServiceDep
+from api.modules.user.schema import UserCreateResponseSchema, UserCreateSchema
+
+from .dependency import AuthServiceDep
 from .schema import JwtPayload, SigningKeyResponse, TokenType
 
 router = APIRouter()
 
 
 @router.post("/register", summary="Register a new user")
-def register() -> dict[str, str]:
-  # TODO: Add user registration logic
-  # This endpoint should handle user registration, including validating input, creating a new user
-  # and sending verification emails.
-  return {"message": "register endpoint"}
+def register(user: UserCreateSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
+  """
+  Register a new user.
+
+  This endpoint handle user registration, including validating input, creating a new user
+  and assigning role to user.
+  """
+  new_user = auth_service.create_user(user)
+
+  return new_user
 
 
 @router.post("/login", summary="Login user")
@@ -70,7 +77,7 @@ def verify_email() -> dict[str, str]:
 
 
 @router.get("/signing-key", summary="Get signing key")
-def get_signing_key(jwt_service: JwtServiceDep) -> SigningKeyResponse:
+def get_signing_key(auth_service: AuthServiceDep) -> SigningKeyResponse:
   payload = JwtPayload(
     token_type=TokenType.ACCESS,
     exp=1791524531,
@@ -84,35 +91,35 @@ def get_signing_key(jwt_service: JwtServiceDep) -> SigningKeyResponse:
   )
 
   # Encode payload into a JWT string using private key
-  token = jwt_service.encode(payload)
+  token = auth_service.jwt_service.encode(payload)
 
   # Decode and verify the JWT string using public key
-  decoded = jwt_service.decode(token, audience=payload.aud, issuer=payload.iss)
+  decoded = auth_service.jwt_service.decode(token, audience=payload.aud, issuer=payload.iss)
 
   return SigningKeyResponse(token=token, decoded=JwtPayload(**decoded))
 
 
 @router.get("/jwt", summary="Get JWT token")
-def get_jwt_token(jwt_service: JwtServiceDep) -> dict[str, str | int]:
+def get_jwt_token(auth_service: AuthServiceDep) -> dict[str, str | int]:
   payload = {"sub": "user_uuid_a8s9675d98g76as78dgas8"}  # user uuid
-  family_id = jwt_service.get_token_jti()  # family identifier
+  family_id = auth_service.jwt_service.get_token_jti()  # family identifier
 
   # Generate access token
-  access_token_claims = jwt_service.get_default_jwt_claims(TokenType.ACCESS)
+  access_token_claims = auth_service.jwt_service.get_default_jwt_claims(TokenType.ACCESS)
   access_token_claims["token_type"] = TokenType.ACCESS.value
   access_token_claims["sub"] = payload["sub"]
-  access_token_claims["jti"] = jwt_service.get_token_jti()
+  access_token_claims["jti"] = auth_service.jwt_service.get_token_jti()
   access_token_claims["family_id"] = family_id
 
   # Generate refresh token
-  refresh_token_claims = jwt_service.get_default_jwt_claims(TokenType.REFRESH)
+  refresh_token_claims = auth_service.jwt_service.get_default_jwt_claims(TokenType.REFRESH)
   refresh_token_claims["token_type"] = TokenType.REFRESH.value
   refresh_token_claims["sub"] = payload["sub"]
-  refresh_token_claims["jti"] = jwt_service.get_token_jti()
+  refresh_token_claims["jti"] = auth_service.jwt_service.get_token_jti()
   refresh_token_claims["family_id"] = family_id
 
-  access_token = jwt_service.encode(JwtPayload(**access_token_claims))
-  refresh_token = jwt_service.encode(JwtPayload(**refresh_token_claims))
+  access_token = auth_service.jwt_service.encode(JwtPayload(**access_token_claims))
+  refresh_token = auth_service.jwt_service.encode(JwtPayload(**refresh_token_claims))
 
   return {
     "access_token": access_token,
@@ -123,7 +130,7 @@ def get_jwt_token(jwt_service: JwtServiceDep) -> dict[str, str | int]:
 
 
 @router.post("/hash-password", summary="Hash password")
-def hash_password(password_service: PasswordServiceDep) -> dict[str, str | bool]:
-  hashed_password = password_service.password_hash("3x@mPle@t35t")
-  verify_password = password_service.verify_password("3x@mPle@t35t", hashed_password)
+def hash_password(auth_service: AuthServiceDep) -> dict[str, str | bool]:
+  hashed_password = auth_service.password_service.password_hash("3x@mPle@t35t")
+  verify_password = auth_service.password_service.verify_password("3x@mPle@t35t", hashed_password)
   return {"hashed_password": hashed_password, "is_match": verify_password}

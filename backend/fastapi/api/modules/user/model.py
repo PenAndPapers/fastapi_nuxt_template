@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING, ClassVar
 
 from sqlalchemy import ForeignKey, String
@@ -17,7 +18,9 @@ class User(AppBaseModel):
     "comment": "User definition table. Each user can have multiple roles."
   }
 
-  uuid: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+  uuid: Mapped[str] = mapped_column(
+    String(255), default=lambda: str(uuid.uuid4()), unique=True, nullable=False, index=True
+  )
   email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
   password: Mapped[str] = mapped_column(String(255), nullable=False)
   first_name: Mapped[str | None] = mapped_column(String(255), nullable=True)

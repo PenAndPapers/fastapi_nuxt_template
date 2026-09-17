@@ -1,23 +1,24 @@
-import uuid
-
 from sqlalchemy.orm import Session
 
 from api.modules.auth.password.service import PasswordService
 from api.modules.user.model import Permission, Role, RolePermission, User, UserRole
+from api.modules.user.schema import EnumUserPermission, EnumUserRole
 
 
 def seed_rbac_data(db: Session) -> None:
   # 1. Define Basic Permissions
   # Format: {name: description}
   permissions_data = {
-    "all": "Full access to everything",
-    "user:read": "Read user data",
-    "user:write": "Modify user data",
-    "user:delete": "Delete user data",
-    "content:read": "Read content",
-    "content:write": "Create/Edit content",
-    "content:publish": "Publish content",
-    "content:delete": "Delete content",
+    EnumUserPermission.ALL.value: EnumUserPermission.ALL.description,
+    EnumUserPermission.USER_CREATE.value: EnumUserPermission.USER_CREATE.description,
+    EnumUserPermission.USER_DELETE.value: EnumUserPermission.USER_DELETE.description,
+    EnumUserPermission.USER_READ.value: EnumUserPermission.USER_READ.description,
+    EnumUserPermission.USER_UPDATE.value: EnumUserPermission.USER_UPDATE.description,
+    EnumUserPermission.CONTENT_CREATE.value: EnumUserPermission.CONTENT_CREATE.description,
+    EnumUserPermission.CONTENT_READ.value: EnumUserPermission.CONTENT_READ.description,
+    EnumUserPermission.CONTENT_UPDATE.value: EnumUserPermission.CONTENT_UPDATE.description,
+    EnumUserPermission.CONTENT_PUBLISH.value: EnumUserPermission.CONTENT_PUBLISH.description,
+    EnumUserPermission.CONTENT_DELETE.value: EnumUserPermission.CONTENT_DELETE.description,
   }
 
   permission_objs = {}
@@ -36,19 +37,34 @@ def seed_rbac_data(db: Session) -> None:
   # Publisher: content:read, content:write, content:publish
   # User: user:read, content:read
   roles_config = {
-    "SuperAdmin": ["all"],
-    "Admin": [
-      "user:read",
-      "user:write",
-      "user:delete",
-      "content:read",
-      "content:write",
-      "content:publish",
-      "content:delete",
+    EnumUserRole.SUPER_ADMIN.value: [EnumUserPermission.ALL.value],
+    EnumUserRole.ADMIN.value: [
+      EnumUserPermission.USER_CREATE.value,
+      EnumUserPermission.USER_DELETE.value,
+      EnumUserPermission.USER_READ.value,
+      EnumUserPermission.USER_UPDATE.value,
+      EnumUserPermission.CONTENT_CREATE.value,
+      EnumUserPermission.CONTENT_READ.value,
+      EnumUserPermission.CONTENT_UPDATE.value,
+      EnumUserPermission.CONTENT_PUBLISH.value,
+      EnumUserPermission.CONTENT_DELETE.value,
     ],
-    "Editor": ["content:read", "content:write"],
-    "Publisher": ["content:read", "content:write", "content:publish"],
-    "User": ["user:read", "content:read"],
+    EnumUserRole.EDITOR.value: [
+      EnumUserPermission.CONTENT_CREATE.value,
+      EnumUserPermission.CONTENT_READ.value,
+      EnumUserPermission.CONTENT_UPDATE.value,
+    ],
+    EnumUserRole.PUBLISHER.value: [
+      EnumUserPermission.CONTENT_CREATE.value,
+      EnumUserPermission.CONTENT_READ.value,
+      EnumUserPermission.CONTENT_UPDATE.value,
+      EnumUserPermission.CONTENT_PUBLISH.value,
+      EnumUserPermission.CONTENT_DELETE.value,
+    ],
+    EnumUserRole.USER.value: [
+      EnumUserPermission.USER_READ.value,
+      EnumUserPermission.CONTENT_READ.value,
+    ],
   }
 
   role_objs = {}
@@ -72,11 +88,19 @@ def seed_rbac_data(db: Session) -> None:
   pw_service = PasswordService()
 
   users_to_create = [
-    {"email": "superadmin@example.com", "username": "superadmin", "role": "SuperAdmin"},
-    {"email": "admin@example.com", "username": "admin", "role": "Admin"},
-    {"email": "editor@example.com", "username": "editor", "role": "Editor"},
-    {"email": "publisher@example.com", "username": "publisher", "role": "Publisher"},
-    {"email": "user@example.com", "username": "user", "role": "User"},
+    {
+      "email": "superadmin@example.com",
+      "username": "superadmin",
+      "role": EnumUserRole.SUPER_ADMIN.value,
+    },
+    {"email": "admin@example.com", "username": "admin", "role": EnumUserRole.ADMIN.value},
+    {"email": "editor@example.com", "username": "editor", "role": EnumUserRole.EDITOR.value},
+    {
+      "email": "publisher@example.com",
+      "username": "publisher",
+      "role": EnumUserRole.PUBLISHER.value,
+    },
+    {"email": "user@example.com", "username": "user", "role": EnumUserRole.USER.value},
   ]
 
   for u_data in users_to_create:
@@ -84,7 +108,6 @@ def seed_rbac_data(db: Session) -> None:
     hashed_pw = pw_service.password_hash("password123")
     if not user:
       user = User(
-        uuid=str(uuid.uuid4()),
         email=u_data["email"],
         password=hashed_pw,
         first_name=u_data["username"].title(),

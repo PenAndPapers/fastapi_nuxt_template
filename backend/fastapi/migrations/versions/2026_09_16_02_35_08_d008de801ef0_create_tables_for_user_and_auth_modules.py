@@ -23,9 +23,9 @@ def upgrade() -> None:
   op.create_table(
     "permissions",
     sa.PrimaryKeyConstraint("id"),
+    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column("name", sa.String(length=100), nullable=False),
     sa.Column("description", sa.String(length=255), nullable=True),
-    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column(
       "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
     ),
@@ -39,9 +39,9 @@ def upgrade() -> None:
   op.create_table(
     "roles",
     sa.PrimaryKeyConstraint("id"),
+    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column("name", sa.String(length=50), nullable=False),
     sa.Column("description", sa.String(length=255), nullable=True),
-    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column(
       "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
     ),
@@ -55,6 +55,7 @@ def upgrade() -> None:
   op.create_table(
     "users",
     sa.PrimaryKeyConstraint("id"),
+    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column("uuid", sa.String(length=255), nullable=False),
     sa.Column("email", sa.String(length=255), nullable=False),
     sa.Column("password", sa.String(length=255), nullable=False),
@@ -62,7 +63,6 @@ def upgrade() -> None:
     sa.Column("last_name", sa.String(length=255), nullable=True),
     sa.Column("address", sa.String(length=255), nullable=True),
     sa.Column("phone_number", sa.String(length=255), nullable=True),
-    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column(
       "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
     ),
@@ -77,6 +77,7 @@ def upgrade() -> None:
   op.create_table(
     "devices",
     sa.PrimaryKeyConstraint("id"),
+    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column("client_device_id", sa.String(length=255), nullable=False),
     sa.Column("device_type", sa.String(length=50), nullable=True),
     sa.Column("os", sa.String(length=50), nullable=True),
@@ -85,7 +86,6 @@ def upgrade() -> None:
     sa.Column("latitude", sa.Float(), nullable=True),
     sa.Column("longitude", sa.Float(), nullable=True),
     sa.Column("user_id", sa.BigInteger(), nullable=False),
-    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column(
       "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
     ),
@@ -103,6 +103,7 @@ def upgrade() -> None:
   op.create_table(
     "one_time_pins",
     sa.PrimaryKeyConstraint("id"),
+    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column("pin_hash", sa.String(length=64), nullable=False),
     sa.Column("purpose", sa.String(length=30), nullable=False),
     sa.Column("expires_at", sa.DateTime(), nullable=False),
@@ -110,7 +111,6 @@ def upgrade() -> None:
     sa.Column("is_used", sa.Boolean(), nullable=False),
     sa.Column("attempts", sa.Integer(), nullable=False),
     sa.Column("user_id", sa.BigInteger(), nullable=False),
-    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column(
       "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
     ),
@@ -129,9 +129,9 @@ def upgrade() -> None:
   op.create_table(
     "role_permissions",
     sa.PrimaryKeyConstraint("id"),
+    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column("role_id", sa.Integer(), nullable=False),
     sa.Column("permission_id", sa.Integer(), nullable=False),
-    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column(
       "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
     ),
@@ -152,9 +152,9 @@ def upgrade() -> None:
   op.create_table(
     "user_roles",
     sa.PrimaryKeyConstraint("id"),
+    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column("user_id", sa.Integer(), nullable=False),
     sa.Column("role_id", sa.Integer(), nullable=False),
-    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column(
       "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
     ),
@@ -171,13 +171,13 @@ def upgrade() -> None:
   op.create_table(
     "auth_tokens",
     sa.PrimaryKeyConstraint("id"),
+    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column("token_hash", sa.String(length=64), nullable=False),
     sa.Column("token_type", sa.String(length=20), nullable=False),
     sa.Column("expires_at", sa.DateTime(), nullable=False),
     sa.Column("is_revoked", sa.Boolean(), nullable=False),
     sa.Column("user_id", sa.BigInteger(), nullable=False),
     sa.Column("device_id", sa.BigInteger(), nullable=True),
-    sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
     sa.Column(
       "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False
     ),

@@ -10,6 +10,31 @@ jobs:
   backend-checks:
     name: Backend CI (FastAPI)
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: postgres_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_INITDB_ARGS: "-c max_connections=200 -c shared_buffers=256MB"
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 3s
+          --health-retries 3
+
+    env:
+      DATABASE_URL: postgresql://postgres:changeme@localhost:5432/postgres_db
+      POSTGRES_SERVER: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: postgres_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
@@ -31,6 +56,10 @@ jobs:
 
       - name: Run Ruff (Formatter Check)
         run: uv run --project backend/fastapi/ ruff format --check backend/fastapi/
+
+      - name: Run Migrations
+        working-directory: backend/fastapi
+        run: uv run alembic upgrade head
 
       - name: Run Pytest
         run: uv run --project backend/fastapi/ pytest backend/fastapi/tests/
