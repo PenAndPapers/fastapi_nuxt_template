@@ -1,6 +1,6 @@
 from core.database import DatabaseDep
 
-from .model import Permission, Role, User
+from .model import Permission, Role, User, UserRole
 from .schema import EnumUserRole, UserCreateSchema
 
 
@@ -26,9 +26,12 @@ class UserRepository:
     return user_entity
 
   def set_user_role(self, user_id: int, role: EnumUserRole) -> None:
-    user = self.db.query(User).filter(User.id == user_id).first()
-    if user:
-      user.role = role
+    db_user = self.db.query(User).filter(User.id == user_id).first()
+    db_role = self.db.query(Role).filter(Role.name == role.value).first()
+
+    if db_user and db_role:
+      user_role = UserRole(user_id=db_user.id, role_id=db_role.id)
+      self.db.add(user_role)
       self.db.commit()
 
   def get_user_with_permissions(self, user_id: int) -> User | None:
