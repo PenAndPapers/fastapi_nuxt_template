@@ -10,9 +10,12 @@ router = APIRouter()
 
 @router.post("/register", summary="Register a new user")
 def register(user: UserCreateSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
-  # TODO: Add user registration logic
+  """
+  Register a new user.
 
-  # Create user
+  This endpoint handle user registration, including validating input, creating a new user
+  and assigning role to user.
+  """
   new_user = auth_service.create_user(user)
 
   return new_user

@@ -1,5 +1,7 @@
 from core.database import DatabaseDep
+from core.schema import PositiveInt
 
+from .exception import UserOrRoleNotFoundExceptionError
 from .model import Permission, Role, User, UserRole
 from .schema import EnumUserRole, UserCreateSchema
 
@@ -9,30 +11,13 @@ class UserRepository:
     self.db = db
     self.model = User
 
-  def create_user(self, user: UserCreateSchema, role: EnumUserRole) -> User:
-    # 1. Create the Model instance from the schema
-    user_entity = User(**user.model_dump())
-
-    # 2. Add and commit to get the ID from the database
-    self.db.add(user_entity)
+  def create_user(self, user: UserCreateSchema) -> User:
+    new_user = User(**user.model_dump())
+    self.db.add(new_user)
     self.db.commit()
+    self.db.refresh(new_user)
 
-    # 3. Now user_entity.id is populated. Use it to set the role.
-    self.set_user_role(user_entity.id, role)
-
-    # 4. Refresh to get the latest state (including any DB-side defaults)
-    self.db.refresh(user_entity)
-
-    return user_entity
-
-  def set_user_role(self, user_id: int, role: EnumUserRole) -> None:
-    db_user = self.db.query(User).filter(User.id == user_id).first()
-    db_role = self.db.query(Role).filter(Role.name == role.value).first()
-
-    if db_user and db_role:
-      user_role = UserRole(user_id=db_user.id, role_id=db_role.id)
-      self.db.add(user_role)
-      self.db.commit()
+    return new_user
 
   def get_user_with_permissions(self, user_id: int) -> User | None:
     from sqlalchemy.orm import joinedload
@@ -46,6 +31,26 @@ class UserRepository:
 
   def get_user(self) -> None:
     pass
+
+
+class UserRoleRepository:
+  def __init__(self, db: DatabaseDep) -> None:
+    self.db = db
+    self.model = UserRole
+
+  def assign_role(self, user_id: PositiveInt, role: EnumUserRole) -> UserRole:
+    db_user = self.db.query(User).filter(User.id == user_id).first()
+    db_role = self.db.query(Role).filter(Role.name == role.value).first()
+
+    if not db_user or not db_role:
+      raise UserOrRoleNotFoundExceptionError()
+
+    user_role = UserRole(user_id=db_user.id, role_id=db_role.id)
+    self.db.add(user_role)
+    self.db.commit()
+    self.db.refresh(user_role)
+
+    return user_role
 
 
 class RoleRepository:
