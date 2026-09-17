@@ -6,7 +6,7 @@ from .exception import InvalidCredentialsError
 from .jwt.service import JwtService
 from .password.service import PasswordService
 from .repository import AuthRepository
-from .schema import AuthLoginSchema, JwtPayload, SessionToken, TokenType
+from .schema import AuthLoginSchema, SessionToken, TokenType
 
 
 class AuthService:
@@ -26,6 +26,7 @@ class AuthService:
 
   def register(self, user: UserCreateSchema) -> User:
     # TODO:
+    # - rate limiting.
     # - sending verification emails.
 
     # Hash password
@@ -44,6 +45,9 @@ class AuthService:
     return db_user
 
   def login(self, user: AuthLoginSchema) -> SessionToken:
+    # TODO:
+    # - rate limiting.
+
     db_user = self.user_repository.get_user_by_email(user.email)
 
     if not db_user or not self.password_service.verify_password(user.password, db_user.password):
