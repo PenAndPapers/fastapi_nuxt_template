@@ -6,7 +6,7 @@ from .exception import InvalidCredentialsError
 from .jwt.service import JwtService
 from .password.service import PasswordService
 from .repository import AuthRepository
-from .schema import AuthLoginSchema
+from .schema import AuthLoginSchema, JwtPayload, SessionToken, TokenType
 
 
 class AuthService:
@@ -43,10 +43,24 @@ class AuthService:
 
     return db_user
 
-  def login(self, user: AuthLoginSchema) -> User | None:
+  def login(self, user: AuthLoginSchema) -> SessionToken:
     db_user = self.user_repository.get_user_by_email(user.email)
 
     if not db_user or not self.password_service.verify_password(user.password, db_user.password):
       raise InvalidCredentialsError("Incorrect email or password")
 
-    return db_user
+    family_id = self.jwt_service.get_token_jti()
+
+    access_token, access_exp = self.jwt_service.create_token(
+      TokenType.ACCESS, db_user.uuid, family_id
+    )
+    refresh_token, refresh_exp = self.jwt_service.create_token(
+      TokenType.REFRESH, db_user.uuid, family_id
+    )
+
+    return SessionToken(
+      access_token=access_token,
+      access_exp=access_exp,
+      refresh_token=refresh_token,
+      refresh_exp=refresh_exp,
+    )

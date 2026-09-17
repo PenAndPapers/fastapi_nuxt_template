@@ -3,7 +3,7 @@ from fastapi import APIRouter, status
 from api.modules.user.schema import UserCreateResponseSchema, UserCreateSchema
 
 from .dependency import AuthServiceDep
-from .schema import AuthLoginSchema, JwtPayload, SigningKeyResponse, TokenType
+from .schema import AuthLoginSchema, JwtPayload, SessionToken, SigningKeyResponse, TokenType
 
 router = APIRouter()
 
@@ -22,14 +22,14 @@ def register(user: UserCreateSchema, auth_service: AuthServiceDep) -> UserCreate
 
 
 @router.post("/login", status_code=status.HTTP_200_OK, summary="Login user")
-def login(user: AuthLoginSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
+def login(user: AuthLoginSchema, auth_service: AuthServiceDep) -> SessionToken:
   # TODO: Add user login logic
   # This endpoint should handle user login, including validating input, authenticating user
   # and returning token.
 
-  db_user = auth_service.login(user)
+  session_token = auth_service.login(user)
 
-  return db_user
+  return session_token
 
 
 @router.post("/refresh-token", summary="Refresh user token")
@@ -103,7 +103,7 @@ def get_signing_key(auth_service: AuthServiceDep) -> SigningKeyResponse:
 
 
 @router.get("/jwt", summary="Get JWT token")
-def get_jwt_token(auth_service: AuthServiceDep) -> dict[str, str | int]:
+def get_jwt_token(auth_service: AuthServiceDep) -> SessionToken:
   payload = {"sub": "user_uuid_a8s9675d98g76as78dgas8"}  # user uuid
   family_id = auth_service.jwt_service.get_token_jti()  # family identifier
 

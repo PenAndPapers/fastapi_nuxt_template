@@ -37,6 +37,31 @@ class JwtService:
     """
     return str(uuid4())
 
+  def create_token(self, token_type: TokenType, sub: str, family_id: str) -> tuple[str, int]:
+    """Create a new JWT token.
+
+    Args:
+        token_type: The type of token to create.
+        sub: The subject identifier of the token.
+        family_id: The family identifier of the token family.
+
+    Returns:
+        tuple[str, int]: The created token and expiration time in seconds.
+    """
+
+    claims = self.get_default_jwt_claims(token_type)
+    claims.update(
+      {
+        "token_type": token_type.value,
+        "sub": sub,
+        "jti": self.get_token_jti(),
+        "family_id": family_id,
+      }
+    )
+
+    encoded = self.encode(JwtPayload(**claims))
+    return encoded, claims["exp"]
+
   def get_token_type_expiration(self, token_type: TokenType) -> int:
     """Get the expiration time in seconds for a given token type.
 
