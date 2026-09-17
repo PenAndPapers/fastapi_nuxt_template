@@ -20,7 +20,9 @@ COPY backend/fastapi/pyproject.toml backend/fastapi/uv.lock ./
 # Create virtual environment outside /app so volumes won't overwrite it
 RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN uv pip install -r pyproject.toml pytest pytest-asyncio httpx
+# Tell uv to use the existing venv and install all groups
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+RUN uv sync --all-groups
 
 COPY backend/fastapi/ .
 

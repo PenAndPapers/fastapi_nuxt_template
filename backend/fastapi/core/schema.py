@@ -14,5 +14,5 @@ NonEmptyStr = Annotated[str, StringConstraints(min_length=1, strip_whitespace=Tr
 
 # ---- Integer schemas ----
 
-PositiveInt = Annotated[int, Field(min=1)]
-NegativeInt = Annotated[int, Field(max=-1)]
+PositiveInt = Annotated[int, Field(ge=1)]
+NegativeInt = Annotated[int, Field(le=-1)]

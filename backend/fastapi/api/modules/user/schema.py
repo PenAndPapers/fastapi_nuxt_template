@@ -49,21 +49,43 @@ class EnumUserPermission(StrEnum):
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 class UserBaseSchema(BaseModel):
   email: EmailStr = Field(
-    ..., nullable=False, description="Email address", example="johndoe@example.com"
+    ...,
+    description="Email address",
+    json_schema_extra={"nullable": False, "example": "johndoe@example.com"},
   )
-  first_name: str = Field(..., nullable=False, description="First name", example="John")
-  last_name: str = Field(..., nullable=False, description="Last name", example="Doe")
+  first_name: str = Field(
+    ...,
+    description="First name",
+    json_schema_extra={"nullable": False, "example": "John"},
+  )
+  last_name: str = Field(
+    ...,
+    description="Last name",
+    json_schema_extra={"nullable": False, "example": "Doe"},
+  )
   address: str = Field(
-    ..., nullable=True, description="Address", example="123 Main St, Anytown, USA"
+    ...,
+    description="Address",
+    json_schema_extra={"nullable": True, "example": "123 Main St, Anytown, USA"},
   )
-  phone_number: str = Field(..., nullable=True, description="Phone number", example="+12345678901")
+  phone_number: str = Field(
+    ...,
+    description="Phone number",
+    json_schema_extra={"nullable": True, "example": "+12345678901"},
+  )
 
 
 class UserCreateSchema(UserBaseSchema):
   password: str = Field(
-    ..., min_length=8, max_length=20, description="Password", example="P@ssw0rd#123"
+    ...,
+    min_length=8,
+    max_length=20,
+    description="Password",
+    json_schema_extra={"example": "P@ssw0rd#123"},
   )
-  role: EnumUserRole = Field(..., description="User role", example=EnumUserRole.USER.value)
+  role: EnumUserRole = Field(
+    ..., description="User role", json_schema_extra={"example": EnumUserRole.USER.value}
+  )
 
 
 class UserCreateResponseSchema(UserBaseSchema):
