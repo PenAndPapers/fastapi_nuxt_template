@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from faker import Faker
 from sqlalchemy.orm import Session
@@ -13,20 +15,23 @@ from api.modules.user.schema import EnumUserRole, UserCreateSchema
 
 @pytest.fixture
 def auth_service(db_session: Session) -> AuthService:
-  # Initialize real repositories and services with the test DB session
-  auth_repo = AuthRepository(db_session)
-  user_repo = UserRepository(db_session)
-  user_role_repo = UserRoleRepository(db_session)
-  jwt_service = JwtService()
-  password_service = PasswordService()
+  # We patch the read_text method of Path objects specifically during
+  # the initialization of JwtService to avoid FileNotFoundError in CI
+  with patch("pathlib.Path.read_text") as mock_read:
+    mock_read.return_value = "fake-key-content"
+    auth_repo = AuthRepository(db_session)
+    user_repo = UserRepository(db_session)
+    user_role_repo = UserRoleRepository(db_session)
+    jwt_service = JwtService()
+    password_service = PasswordService()
 
-  return AuthService(
-    repository=auth_repo,
-    user_repository=user_repo,
-    user_role_repository=user_role_repo,
-    jwt_service=jwt_service,
-    password_service=password_service,
-  )
+    return AuthService(
+      repository=auth_repo,
+      user_repository=user_repo,
+      user_role_repository=user_role_repo,
+      jwt_service=jwt_service,
+      password_service=password_service,
+    )
 
 
 def test_create_user_integration_success(
