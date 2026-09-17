@@ -1,14 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from api.modules.user.schema import UserCreateResponseSchema, UserCreateSchema
 
 from .dependency import AuthServiceDep
-from .schema import JwtPayload, SigningKeyResponse, TokenType
+from .schema import AuthLoginSchema, JwtPayload, SigningKeyResponse, TokenType
 
 router = APIRouter()
 
 
-@router.post("/register", summary="Register a new user")
+@router.post("/register", status_code=status.HTTP_201_CREATED, summary="Register a new user")
 def register(user: UserCreateSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
   """
   Register a new user.
@@ -21,12 +21,15 @@ def register(user: UserCreateSchema, auth_service: AuthServiceDep) -> UserCreate
   return new_user
 
 
-@router.post("/login", summary="Login user")
-def login() -> dict[str, str]:
+@router.post("/login", status_code=status.HTTP_200_OK, summary="Login user")
+def login(user: AuthLoginSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
   # TODO: Add user login logic
   # This endpoint should handle user login, including validating input, authenticating user
   # and returning token.
-  return {"message": "login endpoint"}
+
+  db_user = auth_service.login(user)
+
+  return db_user
 
 
 @router.post("/refresh-token", summary="Refresh user token")

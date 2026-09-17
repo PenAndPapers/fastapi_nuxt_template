@@ -1,3 +1,6 @@
+from pydantic import EmailStr
+from sqlalchemy import select
+
 from core.database import DatabaseDep
 from core.schema import PositiveInt
 
@@ -18,6 +21,12 @@ class UserRepository:
     self.db.refresh(new_user)
 
     return new_user
+
+  def get_user_by_email(self, email: EmailStr) -> User | None:
+    query = select(User).filter(User.email == email)
+    result = self.db.execute(query).scalar_one_or_none()
+
+    return result
 
   def get_user_with_permissions(self, user_id: int) -> User | None:
     from sqlalchemy.orm import joinedload

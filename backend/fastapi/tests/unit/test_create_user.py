@@ -93,7 +93,7 @@ def test_create_user_success(
   )
 
   # Call the service method
-  result = auth_service.create_user(user_data)
+  result = auth_service.register(user_data)
 
   # Assert
   # Check password was hashed

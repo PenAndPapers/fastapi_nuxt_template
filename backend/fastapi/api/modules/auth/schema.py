@@ -87,8 +87,18 @@ class AuthRegisterSchema(UserCreateSchema):
 
 
 class AuthLoginSchema(BaseModel):
-  email: EmailStr
-  password: str = Field(..., min_length=8, max_length=20, description="Password")
+  email: EmailStr = Field(
+    ...,
+    description="Email address",
+    json_schema_extra={"nullable": False, "example": "johndoe@example.com"},
+  )
+  password: str = Field(
+    ...,
+    min_length=8,
+    max_length=20,
+    description="Password",
+    json_schema_extra={"example": "P@ssw0rd#123"},
+  )
 
 
 class AuthForgetPasswordSchema(BaseModel):

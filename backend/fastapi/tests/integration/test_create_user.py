@@ -59,7 +59,7 @@ def test_create_user_integration_success(
   )
 
   # Act
-  created_user = auth_service.create_user(user_data)
+  created_user = auth_service.register(user_data)
 
   # Assert
   # 1. Verify user exists in database
@@ -102,7 +102,7 @@ def test_create_superadmin_integration_success(
   )
 
   # Act
-  created_user = auth_service.create_user(user_data)
+  created_user = auth_service.register(user_data)
 
   # Verify
   db_user = db_session.query(User).filter_by(email=email).first()
