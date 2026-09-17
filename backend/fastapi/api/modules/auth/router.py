@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 @router.post("/register", summary="Register a new user")
-def register() -> dict[str, str]:
+def register() -> None:
   # TODO: Add user registration logic
   # This endpoint should handle user registration, including validating input, creating a new user
   # and sending verification emails.

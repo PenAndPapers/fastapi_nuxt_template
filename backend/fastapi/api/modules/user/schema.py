@@ -1,22 +1,58 @@
 from datetime import datetime
+from enum import StrEnum
 
 from pydantic import BaseModel, EmailStr, Field
 
 
+# ------------------------------------------------------------------------------------------------------------------------------------------------
+# User Enums
+# ------------------------------------------------------------------------------------------------------------------------------------------------
+class EnumUserRole(StrEnum):
+  ADMIN = "admin"
+  EDITOR = "editor"
+  PUBLISHER = "publisher"
+  SUPER_ADMIN = "super_admin"
+  USER = "user"
+
+
+class EnumUserPermission(StrEnum):
+  ALL = "all"
+  USER_CREATE = "user:create"
+  USER_DELETE = "user:delete"
+  USER_READ = "user:read"
+  USER_UPDATE = "user:update"
+  CONTENT_CREATE = "content:create"
+  CONTENT_DELETE = "content:delete"
+  CONTENT_PUBLISH = "content:publish"
+  CONTENT_READ = "content:read"
+  CONTENT_UPDATE = "content:update"
+
+  @property
+  def description(self) -> str:
+    _descriptions = {
+      EnumUserPermission.ALL: "Full access to everything",
+      EnumUserPermission.USER_CREATE: "Create user",
+      EnumUserPermission.USER_DELETE: "Delete user data",
+      EnumUserPermission.USER_READ: "Read user data",
+      EnumUserPermission.USER_UPDATE: "Modify user data",
+      EnumUserPermission.CONTENT_CREATE: "Create content",
+      EnumUserPermission.CONTENT_DELETE: "Delete content",
+      EnumUserPermission.CONTENT_PUBLISH: "Publish content",
+      EnumUserPermission.CONTENT_READ: "Read content",
+      EnumUserPermission.CONTENT_UPDATE: "Modify content",
+    }
+    return _descriptions[self]
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------------
+# User Request and Response Schemas
+# ------------------------------------------------------------------------------------------------------------------------------------------------
 class UserBaseSchema(BaseModel):
   email: EmailStr
   first_name: str = Field(..., nullable=False, description="First name")
   last_name: str = Field(..., nullable=False, description="Last name")
   address: str = Field(..., nullable=True, description="Address")
   phone_number: str = Field(..., nullable=True, description="Phone number")
-
-
-class UserSchema(UserBaseSchema):
-  id: int
-  uuid: str
-  created_at: datetime
-  updated_at: datetime
-  deleted_at: datetime | None = None
 
 
 class UserCreateSchema(UserBaseSchema):

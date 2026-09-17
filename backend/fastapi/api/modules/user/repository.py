@@ -8,6 +8,9 @@ class UserRepository:
     self.db = db
     self.model = User
 
+  def create_user(self) -> None:
+    pass
+
   def get_user_with_permissions(self, user_id: int) -> User | None:
     from sqlalchemy.orm import joinedload
 
