@@ -41,16 +41,22 @@ def auth_service(db_session: Session, tmp_path: Path) -> AuthService:
   priv_file.write_text(MOCK_PRIVATE_KEY)
   pub_file.write_text(MOCK_PUBLIC_KEY)
 
-  # 2. Patch the settings to use the temporary files
+  # 2. Import the settings instance specifically from the jwt service module
+  from api.modules.auth.jwt.service import settings
+
+  # 3. Patch the Path attributes ON THAT SETTINGS INSTANCE before JwtService() is called
   with (
     patch.object(settings, "private_key_path", priv_file),
     patch.object(settings, "public_key_path", pub_file),
   ):
+    # When JwtService runs, settings.private_key_path will point to priv_file
+    jwt_service = JwtService()
+
     return AuthService(
       repository=AuthRepository(db_session),
       user_repository=UserRepository(db_session),
       user_role_repository=UserRoleRepository(db_session),
-      jwt_service=JwtService(),
+      jwt_service=jwt_service,
       password_service=PasswordService(),
     )
 
