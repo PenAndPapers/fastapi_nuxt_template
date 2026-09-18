@@ -6,7 +6,7 @@ import jwt
 from core.config import Settings
 
 from ..exception import JwtExpiredError, JwtInvalidTokenError
-from ..schema import JwtPayload, TokenType
+from ..schema import GeneratedToken, JwtPayload, TokenType
 
 settings = Settings()
 
@@ -55,7 +55,7 @@ class JwtService:
       "exp": int(datetime.now().timestamp() + self.get_token_type_expiration(token_type)),
     }
 
-  def create_token(self, token_type: TokenType, sub: str, family_id: str) -> tuple[str, int]:
+  def create_token(self, token_type: TokenType, sub: str, family_id: str) -> GeneratedToken:
     """Create a new JWT token.
 
     Args:
@@ -78,7 +78,8 @@ class JwtService:
     )
 
     encoded = self.encode(JwtPayload(**claims))
-    return encoded, claims["exp"]
+
+    return GeneratedToken(encoded=encoded, exp=claims["exp"], family_id=claims["family_id"])
 
   def get_token_type_expiration(self, token_type: TokenType) -> int:
     """Get the expiration time in seconds for a given token type.

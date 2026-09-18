@@ -1,9 +1,11 @@
 from fastapi import APIRouter, status
 
 from api.modules.user.schema import UserCreateResponseSchema
+from core.schema import GenericResponseMessage
 
 from .dependency import AuthServiceDep
 from .schema import (
+  AuthForgetPasswordSchema,
   AuthLoginSchema,
   AuthRegisterSchema,
   JwtPayload,
@@ -62,12 +64,15 @@ def logout() -> dict[str, str]:
   return {"message": "logout endpoint"}
 
 
-@router.post("/forget-password", summary="Forget password for user")
-def forget_password() -> dict[str, str]:
-  # TODO: Add user forget password logic
-  # This endpoint should handle user forget password, including validating input,
-  # sending OTP to user's email and updating user's password.
-  return {"message": "forget password endpoint"}
+@router.post("/forget-password", status_code=status.HTTP_200_OK, summary="Forget password for user")
+def forget_password(
+  user: AuthForgetPasswordSchema, auth_service: AuthServiceDep
+) -> GenericResponseMessage:
+  auth_service.forget_password(user)
+
+  return GenericResponseMessage(
+    message=f"Email has been sent to {user.email} with password reset instructions."
+  )
 
 
 @router.post("/reset-password", summary="Reset password for user")

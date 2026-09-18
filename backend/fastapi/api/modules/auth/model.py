@@ -1,10 +1,12 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, ClassVar, Optional
 
-from sqlalchemy import BigInteger, ForeignKey, Index, String
+from sqlalchemy import BigInteger, Enum, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.model import AppBaseModel
+
+from .schema import TokenType
 
 if TYPE_CHECKING:
   from api.modules.user.model import User
@@ -17,10 +19,11 @@ class Auth(AppBaseModel):
   __table_args__: ClassVar[dict[str, str]] = {"comment": "User's authentication tokens."}
 
   # Store hashed tokens (e.g., SHA-256 of the actual refresh token)
-  token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-  token_type: Mapped[str] = mapped_column(String(20), default="refresh")
+  token_hash: Mapped[str] = mapped_column(String(1000), unique=True, index=True)
+  token_type: Mapped[TokenType] = mapped_column(Enum(TokenType), nullable=False)
   expires_at: Mapped[datetime] = mapped_column(index=True)
   is_revoked: Mapped[bool] = mapped_column(default=False, index=True)
+  family_id: Mapped[str] = mapped_column(String(255), nullable=False)
 
   user_id: Mapped[int] = mapped_column(
     BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True

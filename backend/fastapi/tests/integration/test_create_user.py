@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.password.service import PasswordService
-from api.modules.auth.repository import AuthRepository
+from api.modules.auth.repository import AuthRepository, DeviceRepository
 from api.modules.auth.service import AuthService
 from api.modules.user.exception import UserAlreadyExistExceptionError
 from api.modules.user.model import Role, User, UserRole
@@ -21,6 +21,7 @@ def auth_service(db_session: Session) -> AuthService:
   with patch("pathlib.Path.read_text") as mock_read:
     mock_read.return_value = "fake-key-content"
     auth_repo = AuthRepository(db_session)
+    device_repo = DeviceRepository(db_session)
     user_repo = UserRepository(db_session)
     user_role_repo = UserRoleRepository(db_session)
     jwt_service = JwtService()
@@ -28,6 +29,7 @@ def auth_service(db_session: Session) -> AuthService:
 
     return AuthService(
       repository=auth_repo,
+      device_repository=device_repo,
       user_repository=user_repo,
       user_role_repository=user_role_repo,
       jwt_service=jwt_service,

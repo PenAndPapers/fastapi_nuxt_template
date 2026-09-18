@@ -7,13 +7,17 @@ from core.database import DatabaseDep
 
 from .jwt.service import JwtService
 from .password.service import PasswordService
-from .repository import AuthRepository
+from .repository import AuthRepository, DeviceRepository
 from .service import AuthService
 
 
 # 1. Repositories (depends on DB session)
 def get_auth_repository(db: DatabaseDep) -> AuthRepository:
   return AuthRepository(db)
+
+
+def get_device_repository(db: DatabaseDep) -> DeviceRepository:
+  return DeviceRepository(db)
 
 
 def get_user_repository(db: DatabaseDep) -> UserRepository:
@@ -25,6 +29,7 @@ def get_user_role_repository(db: DatabaseDep) -> UserRoleRepository:
 
 
 AuthRepositoryDep = Annotated[AuthRepository, Depends(get_auth_repository)]
+DeviceRepositoryDep = Annotated[DeviceRepository, Depends(get_device_repository)]
 UserRepositoryDep = Annotated[UserRepository, Depends(get_user_repository)]
 UserRoleRepositoryDep = Annotated[UserRoleRepository, Depends(get_user_role_repository)]
 
@@ -37,13 +42,19 @@ PasswordServiceDep = Annotated[PasswordService, Depends(PasswordService)]
 # 3. Domain Services (depends on repository)
 def get_auth_service(
   repository: AuthRepositoryDep,
+  device_repository: DeviceRepositoryDep,
   user_repository: UserRepositoryDep,
   user_role_repository: UserRoleRepositoryDep,
   jwt_service: JwtServiceDep,
   password_service: PasswordServiceDep,
 ) -> AuthService:
   return AuthService(
-    repository, user_repository, user_role_repository, jwt_service, password_service
+    repository,
+    device_repository,
+    user_repository,
+    user_role_repository,
+    jwt_service,
+    password_service,
   )
 
 

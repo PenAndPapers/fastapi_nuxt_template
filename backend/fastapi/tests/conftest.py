@@ -32,3 +32,24 @@ def client() -> Generator[TestClient, None, None]:
 @pytest.fixture()
 def faker() -> Faker:
   return Faker()
+
+
+@pytest.fixture()
+def private_key_fixture() -> str:
+  return (
+    "-----BEGIN EC PRIVATE KEY-----\n"
+    "MHcCAQEEIG2KLeKlBGvqsgYuONt25EYRWeUqnAuEeYaRWI5vMyvUoAoGCCqGSM49\n"
+    "AwEHoUQDQgAEIOmFjFCnGcB+thM1BN/sTm/RQpCGOo9Atwmh+1Vl+jsIeBYUnMEQ\n"
+    "U9Sg4VTlVQsl+1uwtPR+TQoFQv7j1OVu7Q==\n"
+    "-----END EC PRIVATE KEY-----\n"
+  )
+
+
+@pytest.fixture()
+def public_key_fixture() -> str:
+  return (
+    "-----BEGIN PUBLIC KEY-----\n"
+    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIOmFjFCnGcB+thM1BN/sTm/RQpCG\n"
+    "Oo9Atwmh+1Vl+jsIeBYUnMEQU9Sg4VTlVQsl+1uwtPR+TQoFQv7j1OVu7Q==\n"
+    "-----END PUBLIC KEY-----\n"
+  )
