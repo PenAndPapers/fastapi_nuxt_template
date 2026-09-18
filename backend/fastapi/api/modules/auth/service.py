@@ -9,6 +9,7 @@ from .schema import (
   AuthForgetPasswordSchema,
   AuthLoginSchema,
   AuthRegisterSchema,
+  AuthResetPasswordSchema,
   DeviceSchema,
   SessionToken,
   TokenSchema,
@@ -126,5 +127,15 @@ class AuthService:
         device_id=device.id,
       )
     )
+
+    return True
+
+  def reset_password(self, payload: AuthResetPasswordSchema) -> bool:
+    # TODO:
+    # - rate limiting.
+    # - verify password reset token.
+    # - update user password.
+    # - revoke password reset token.
+    # - send success message to user's email.
 
     return True

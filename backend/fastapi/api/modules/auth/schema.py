@@ -171,8 +171,11 @@ class AuthForgetPasswordSchema(BaseModel):
 
 
 class AuthResetPasswordSchema(BaseModel):
-  email: EmailStr = Field(
-    ..., description="Email address", json_schema_extra={"example": "johndoe@example.com"}
+  token: str = Field(
+    ...,
+    min_length=1,
+    description="Reset password token",
+    json_schema_extra={"example": "eyJhbGciOiJIU..."},
   )
   password: str = Field(..., min_length=8, max_length=20, description="New password")
   confirm_password: str = Field(

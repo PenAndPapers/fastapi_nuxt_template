@@ -8,6 +8,7 @@ from .schema import (
   AuthForgetPasswordSchema,
   AuthLoginSchema,
   AuthRegisterSchema,
+  AuthResetPasswordSchema,
   JwtPayload,
   SessionToken,
   SigningKeyResponse,
@@ -76,11 +77,12 @@ def forget_password(
 
 
 @router.post("/reset-password", summary="Reset password for user")
-def reset_password() -> dict[str, str]:
-  # TODO: Add user reset password logic
-  # This endpoint should handle user reset password, including validating input,
-  # updating user's password and returning success message.
-  return {"message": "reset password endpoint"}
+def reset_password(
+  payload: AuthResetPasswordSchema, auth_service: AuthServiceDep
+) -> GenericResponseMessage:
+  auth_service.reset_password(payload)
+
+  return GenericResponseMessage(message="Password reset successfully.")
 
 
 @router.post("/verify-email", summary="Verify user email")
