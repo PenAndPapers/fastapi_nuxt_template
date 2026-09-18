@@ -75,9 +75,9 @@ class AuthService:
     refresh_token = self.jwt_service.create_token(TokenType.REFRESH, db_user.uuid, family_id)
 
     return SessionToken(
-      access_token=access_token.encoded,
+      access_token=str(access_token.encoded),
       access_exp=access_token.exp,
-      refresh_token=refresh_token.encoded,
+      refresh_token=str(refresh_token.encoded),
       refresh_exp=refresh_token.exp,
     )
 

@@ -14,6 +14,11 @@ def mock_auth_repo() -> MagicMock:
 
 
 @pytest.fixture
+def mock_device_repo() -> MagicMock:
+  return MagicMock()
+
+
+@pytest.fixture
 def mock_user_repo() -> MagicMock:
   return MagicMock()
 
@@ -39,6 +44,7 @@ def mock_password_service() -> MagicMock:
 @pytest.fixture
 def auth_service(
   mock_auth_repo: MagicMock,
+  mock_device_repo: MagicMock,
   mock_user_repo: MagicMock,
   mock_user_role_repo: MagicMock,
   mock_jwt_service: MagicMock,
@@ -46,6 +52,7 @@ def auth_service(
 ) -> AuthService:
   return AuthService(
     repository=mock_auth_repo,
+    device_repository=mock_device_repo,
     user_repository=mock_user_repo,
     user_role_repository=mock_user_role_repo,
     jwt_service=mock_jwt_service,
@@ -68,6 +75,7 @@ def sample_data(faker: Faker) -> dict:
 
 def test_create_user_success(
   auth_service: AuthService,
+  mock_device_repo: MagicMock,
   mock_password_service: MagicMock,
   mock_user_repo: MagicMock,
   mock_user_role_repo: MagicMock,

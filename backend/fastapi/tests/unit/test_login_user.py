@@ -14,6 +14,11 @@ def mock_auth_repo() -> MagicMock:
 
 
 @pytest.fixture
+def mock_device_repo() -> MagicMock:
+  return MagicMock()
+
+
+@pytest.fixture
 def mock_user_repo() -> MagicMock:
   return MagicMock()
 
@@ -27,7 +32,9 @@ def mock_user_role_repo() -> MagicMock:
 def mock_jwt_service() -> MagicMock:
   service = MagicMock()
   service.get_token_jti.return_value = "family_123"
-  service.create_token.return_value = ("token_val", 123456789)
+  service.create_token.return_value = MagicMock(
+    encoded="token_val", exp=123456789, family_id="family_123"
+  )
   return service
 
 
@@ -39,6 +46,7 @@ def mock_password_service() -> MagicMock:
 @pytest.fixture
 def auth_service(
   mock_auth_repo: MagicMock,
+  mock_device_repo: MagicMock,
   mock_user_repo: MagicMock,
   mock_user_role_repo: MagicMock,
   mock_jwt_service: MagicMock,
@@ -46,6 +54,7 @@ def auth_service(
 ) -> AuthService:
   return AuthService(
     repository=mock_auth_repo,
+    device_repository=mock_device_repo,
     user_repository=mock_user_repo,
     user_role_repository=mock_user_role_repo,
     jwt_service=mock_jwt_service,
@@ -67,6 +76,7 @@ def sample_data() -> dict[str, str]:
 
 def test_login_success(
   auth_service: AuthService,
+  mock_device_repo: MagicMock,
   mock_user_repo: MagicMock,
   mock_password_service: MagicMock,
   mock_jwt_service: MagicMock,
@@ -83,7 +93,7 @@ def test_login_success(
 
   # Assert
   assert isinstance(result, SessionToken)
-  assert result.access_token == data["token_val"]
+  assert str(result.access_token) == data["token_val"]
   mock_user_repo.get_user_by_email.assert_called_once_with(data["email"])
   mock_password_service.verify_password.assert_called_once_with(
     data["password"], data["hashed_password"]
@@ -92,7 +102,10 @@ def test_login_success(
 
 
 def test_login_failed_invalid_password(
-  auth_service: AuthService, mock_user_repo: MagicMock, mock_password_service: MagicMock
+  auth_service: AuthService,
+  mock_device_repo: MagicMock,
+  mock_user_repo: MagicMock,
+  mock_password_service: MagicMock,
 ) -> None:
   data = sample_data()
   # Arrange
@@ -106,7 +119,11 @@ def test_login_failed_invalid_password(
     auth_service.login(login_data)
 
 
-def test_login_failed_user_not_found(auth_service: AuthService, mock_user_repo: MagicMock) -> None:
+def test_login_failed_user_not_found(
+  auth_service: AuthService,
+  mock_device_repo: MagicMock,
+  mock_user_repo: MagicMock,
+) -> None:
   data = sample_data()
   # Arrange
   login_data = AuthLoginSchema(email=data["nonexistent_email"], password=data["password"])

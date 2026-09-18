@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.password.service import PasswordService
-from api.modules.auth.repository import AuthRepository
+from api.modules.auth.repository import AuthRepository, DeviceRepository
 from api.modules.auth.schema import AuthLoginSchema, SessionToken
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
@@ -54,6 +54,7 @@ def auth_service(db_session: Session, tmp_path: Path) -> AuthService:
 
     return AuthService(
       repository=AuthRepository(db_session),
+      device_repository=DeviceRepository(db_session),
       user_repository=UserRepository(db_session),
       user_role_repository=UserRoleRepository(db_session),
       jwt_service=jwt_service,
