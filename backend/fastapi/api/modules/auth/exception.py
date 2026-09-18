@@ -6,7 +6,7 @@ class AuthError(AppExceptionError):
   error_code = "UNAUTHORIZED"
 
   def __init__(self, message: str | None) -> None:
-    self.message = message or "Error: Unauthorized"
+    self.message = message or "Authentication error"
     super().__init__(self.message)
 
 
@@ -15,7 +15,7 @@ class InvalidCredentialsError(AppExceptionError):
   error_code = "INVALID_CREDENTIALS"
 
   def __init__(self, message: str | None) -> None:
-    self.message = message or "Error: Invalid credentials"
+    self.message = message or "Invalid credentials"
     super().__init__(self.message)
 
 
@@ -24,7 +24,7 @@ class UnauthorizedAccessError(AppExceptionError):
   error_code = "UNAUTHORIZED_ACCESS"
 
   def __init__(self, message: str | None) -> None:
-    self.message = message or "Error: Unauthorized access"
+    self.message = message or "Unauthorized access"
     super().__init__(self.message)
 
 
@@ -33,7 +33,7 @@ class JwtExpiredError(AppExceptionError):
   error_code = "JWT_EXPIRED"
 
   def __init__(self, message: str | None) -> None:
-    self.message = message or "Error: JWT expired"
+    self.message = message or "Token is expired"
     super().__init__(self.message)
 
 
@@ -42,5 +42,5 @@ class JwtInvalidTokenError(AppExceptionError):
   error_code = "JWT_INVALID_TOKEN"
 
   def __init__(self, message: str | None) -> None:
-    self.message = message or "Error: JWT invalid token"
+    self.message = message or "Token is invalid"
     super().__init__(self.message)

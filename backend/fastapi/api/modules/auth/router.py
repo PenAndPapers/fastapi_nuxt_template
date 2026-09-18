@@ -1,32 +1,42 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
-from api.modules.user.schema import UserCreateResponseSchema, UserCreateSchema
+from api.modules.user.schema import UserCreateResponseSchema
 
 from .dependency import AuthServiceDep
-from .schema import JwtPayload, SigningKeyResponse, TokenType
+from .schema import (
+  AuthLoginSchema,
+  AuthRegisterSchema,
+  JwtPayload,
+  SessionToken,
+  SigningKeyResponse,
+  TokenType,
+)
 
 router = APIRouter()
 
 
-@router.post("/register", summary="Register a new user")
-def register(user: UserCreateSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
+@router.post("/register", status_code=status.HTTP_201_CREATED, summary="Register a new user")
+def register(user: AuthRegisterSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
   """
   Register a new user.
 
   This endpoint handle user registration, including validating input, creating a new user
   and assigning role to user.
   """
-  new_user = auth_service.create_user(user)
+  new_user = auth_service.register(user)
 
   return new_user
 
 
-@router.post("/login", summary="Login user")
-def login() -> dict[str, str]:
+@router.post("/login", status_code=status.HTTP_200_OK, summary="Login user")
+def login(user: AuthLoginSchema, auth_service: AuthServiceDep) -> SessionToken:
   # TODO: Add user login logic
   # This endpoint should handle user login, including validating input, authenticating user
   # and returning token.
-  return {"message": "login endpoint"}
+
+  session_token = auth_service.login(user)
+
+  return session_token
 
 
 @router.post("/refresh-token", summary="Refresh user token")
@@ -100,7 +110,7 @@ def get_signing_key(auth_service: AuthServiceDep) -> SigningKeyResponse:
 
 
 @router.get("/jwt", summary="Get JWT token")
-def get_jwt_token(auth_service: AuthServiceDep) -> dict[str, str | int]:
+def get_jwt_token(auth_service: AuthServiceDep) -> SessionToken:
   payload = {"sub": "user_uuid_a8s9675d98g76as78dgas8"}  # user uuid
   family_id = auth_service.jwt_service.get_token_jti()  # family identifier
 

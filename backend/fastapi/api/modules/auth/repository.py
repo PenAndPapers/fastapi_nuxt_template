@@ -7,6 +7,3 @@ class AuthRepository:
   def __init__(self, db: DatabaseDep) -> None:
     self.db = db
     self.model = Auth
-
-  def create_user(self) -> None:
-    pass

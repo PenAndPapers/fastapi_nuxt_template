@@ -1,7 +1,10 @@
+from pydantic import EmailStr
+from sqlalchemy import select
+
 from core.database import DatabaseDep
 from core.schema import PositiveInt
 
-from .exception import UserOrRoleNotFoundExceptionError
+from .exception import UserAlreadyExistExceptionError, UserOrRoleNotFoundExceptionError
 from .model import Permission, Role, User, UserRole
 from .schema import EnumUserRole, UserCreateSchema
 
@@ -14,10 +17,20 @@ class UserRepository:
   def create_user(self, user: UserCreateSchema) -> User:
     new_user = User(**user.model_dump())
     self.db.add(new_user)
-    self.db.commit()
-    self.db.refresh(new_user)
 
-    return new_user
+    try:
+      self.db.commit()
+      self.db.refresh(new_user)
+      return new_user
+    except Exception as e:
+      self.db.rollback()
+      raise UserAlreadyExistExceptionError() from e
+
+  def get_user_by_email(self, email: EmailStr) -> User | None:
+    query = select(User).filter(User.email == email)
+    result = self.db.execute(query).scalar_one_or_none()
+
+    return result
 
   def get_user_with_permissions(self, user_id: int) -> User | None:
     from sqlalchemy.orm import joinedload

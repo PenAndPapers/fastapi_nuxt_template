@@ -1,4 +1,3 @@
-import uuid
 from collections.abc import Generator
 
 import pytest
@@ -33,8 +32,3 @@ def client() -> Generator[TestClient, None, None]:
 @pytest.fixture()
 def faker() -> Faker:
   return Faker()
-
-
-@pytest.fixture()
-def random_string() -> str:
-  return str(uuid.uuid4()).replace("-", "")

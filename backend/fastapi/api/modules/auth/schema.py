@@ -12,6 +12,17 @@ class TokenType(StrEnum):
   PASSWORD_UPDATE = "password_update"  # noqa: S105
 
 
+class SessionToken(BaseModel):
+  access_token: str = Field(..., description="Access token for API requests.")
+  access_exp: int = Field(
+    ..., description="Expiration time as a Unix epoch timestamp (seconds) for the access token."
+  )
+  refresh_token: str = Field(..., description="Refresh token for obtaining new access tokens.")
+  refresh_exp: int = Field(
+    ..., description="Expiration time as a Unix epoch timestamp (seconds) for the refresh token."
+  )
+
+
 class JwtPayload(BaseModel):
   """
   Standardized JWT Payload schema following RFC 7519 specifications.
@@ -87,8 +98,18 @@ class AuthRegisterSchema(UserCreateSchema):
 
 
 class AuthLoginSchema(BaseModel):
-  email: EmailStr
-  password: str = Field(..., min_length=8, max_length=20, description="Password")
+  email: EmailStr = Field(
+    ...,
+    description="Email address",
+    json_schema_extra={"nullable": False, "example": "johndoe@example.com"},
+  )
+  password: str = Field(
+    ...,
+    min_length=8,
+    max_length=20,
+    description="Password",
+    json_schema_extra={"example": "P@ssw0rd#123"},
+  )
 
 
 class AuthForgetPasswordSchema(BaseModel):
