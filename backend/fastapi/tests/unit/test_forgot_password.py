@@ -75,7 +75,7 @@ def sample_forget_password_data(faker: Faker) -> dict:
       device_type=faker.word(),
       os=faker.word(),
       browser=faker.word(),
-      ip_address=faker.ip(),
+      ip_address=faker.ipv4(),
       latitude=faker.latitude(),
       longitude=faker.longitude(),
     ),
