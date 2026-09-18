@@ -53,6 +53,19 @@ def auth_service(
   )
 
 
+def sample_data(faker: Faker) -> dict:
+  return {
+    "uuid": faker.uuid4(),
+    "email": faker.email(),
+    "password": faker.password(),
+    "first_name": faker.first_name(),
+    "last_name": faker.last_name(),
+    "address": faker.address(),
+    "phone_number": faker.phone_number(),
+    "role": EnumUserRole.USER,
+  }
+
+
 def test_create_user_success(
   auth_service: AuthService,
   mock_password_service: MagicMock,
@@ -60,36 +73,30 @@ def test_create_user_success(
   mock_user_role_repo: MagicMock,
   faker: Faker,
 ) -> None:
-  uuid = faker.uuid4()
-  email = faker.email()
-  password = faker.password()
-  first_name = faker.first_name()
-  last_name = faker.last_name()
-  address = faker.address()
-  phone_number = faker.phone_number()
-  role = EnumUserRole.USER
+  # Generate sample data
+  data = sample_data(faker)
 
   # Mock request data
   user_data = UserCreateSchema(
-    email=email,
-    password=password,
-    first_name=first_name,
-    last_name=last_name,
-    address=address,
-    phone_number=phone_number,
-    role=role,
+    email=data["email"],
+    password=data["password"],
+    first_name=data["first_name"],
+    last_name=data["last_name"],
+    address=data["address"],
+    phone_number=data["phone_number"],
+    role=data["role"],
   )
 
   # Mock user repository create_user method return value
   mock_user_repo.create_user.return_value = User(
     id=1,
-    uuid=uuid,
-    email=email,
-    password=password,
-    first_name=first_name,
-    last_name=last_name,
-    address=address,
-    phone_number=phone_number,
+    uuid=data["uuid"],
+    email=data["email"],
+    password=data["password"],
+    first_name=data["first_name"],
+    last_name=data["last_name"],
+    address=data["address"],
+    phone_number=data["phone_number"],
   )
 
   # Call the service method
@@ -97,19 +104,19 @@ def test_create_user_success(
 
   # Assert
   # Check password was hashed
-  mock_password_service.password_hash.assert_called_once_with(password)
+  mock_password_service.password_hash.assert_called_once_with(data["password"])
 
   # Check user was created in repository
   mock_user_repo.create_user.assert_called_once()
 
   # Check role was assigned
-  mock_user_role_repo.assign_role.assert_called_once_with(1, role)
+  mock_user_role_repo.assign_role.assert_called_once_with(1, data["role"])
 
   # Check return values
   assert result.id == 1
-  assert result.uuid == uuid
-  assert result.email == email
-  assert result.first_name == first_name
-  assert result.last_name == last_name
-  assert result.address == address
-  assert result.phone_number == phone_number
+  assert result.uuid == data["uuid"]
+  assert result.email == data["email"]
+  assert result.first_name == data["first_name"]
+  assert result.last_name == data["last_name"]
+  assert result.address == data["address"]
+  assert result.phone_number == data["phone_number"]
