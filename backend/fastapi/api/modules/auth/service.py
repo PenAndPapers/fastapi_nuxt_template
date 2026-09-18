@@ -49,7 +49,9 @@ class AuthService:
     # - send OTP if first time login within 24 hours via email.
 
     db_user = self.user_repository.get_user_by_email(user.email)
-    is_password_invalid = not self.password_service.verify_password(user.password, db_user.password)
+    is_password_invalid = db_user and not self.password_service.verify_password(
+      user.password, db_user.password
+    )
 
     if not db_user or is_password_invalid:
       raise InvalidCredentialsError("Incorrect email or password")

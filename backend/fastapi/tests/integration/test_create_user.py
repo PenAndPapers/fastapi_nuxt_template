@@ -8,6 +8,7 @@ from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.password.service import PasswordService
 from api.modules.auth.repository import AuthRepository
 from api.modules.auth.service import AuthService
+from api.modules.user.exception import UserAlreadyExistExceptionError
 from api.modules.user.model import Role, User, UserRole
 from api.modules.user.repository import UserRepository, UserRoleRepository
 from api.modules.user.schema import EnumUserRole, UserCreateSchema
@@ -34,9 +35,27 @@ def auth_service(db_session: Session) -> AuthService:
     )
 
 
+def sample_data(db_session: Session, faker: Faker) -> dict[str, str]:
+  session_id = hex(id(db_session))
+  return {
+    "email": f"test_integration_create_user_{session_id}_{faker.email()}",
+    "password": faker.password(),
+    "invalid_email": f"test_integration_create_user_{session_id}_{faker.email()}",
+    "invalid_password": faker.password(),
+    "uuid": faker.uuid4(),
+    "token_val": faker.uuid4(),
+    "first_name": faker.first_name(),
+    "last_name": faker.last_name(),
+    "address": faker.address(),
+    "phone_number": faker.phone_number(),
+  }
+
+
 def test_create_user_integration_success(
-  auth_service: AuthService, db_session: Session, random_string: str, faker: Faker
+  auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
+  data = sample_data(db_session, faker)
+
   # Arrange: Ensure the role exists in DB
   role_name = EnumUserRole.USER.value
   role = db_session.query(Role).filter_by(name=role_name).first()
@@ -45,16 +64,13 @@ def test_create_user_integration_success(
     db_session.add(role)
     db_session.commit()
 
-  email = f"{random_string}_{faker.email()}"
-  password = faker.password()
-
   user_data = UserCreateSchema(
-    email=email,
-    password=password,
-    first_name=f"{faker.first_name()}",
-    last_name=f"{faker.last_name()}",
-    address=f"{faker.address()}",
-    phone_number=f"{faker.phone_number()}",
+    email=data["email"],
+    password=data["password"],
+    first_name=data["first_name"],
+    last_name=data["last_name"],
+    address=data["address"],
+    phone_number=data["phone_number"],
     role=EnumUserRole.USER,
   )
 
@@ -63,11 +79,11 @@ def test_create_user_integration_success(
 
   # Assert
   # 1. Verify user exists in database
-  db_user = db_session.query(User).filter_by(email=email).first()
+  db_user = db_session.query(User).filter_by(email=data["email"]).first()
   assert db_user is not None
   assert db_user.id == created_user.id
   assert db_user.uuid == created_user.uuid
-  assert db_user.password != password
+  assert db_user.password != data["password"]
 
   # Verify role association exists in junction table
   user_role = db_session.query(UserRole).filter_by(user_id=db_user.id).first()
@@ -78,8 +94,10 @@ def test_create_user_integration_success(
 
 
 def test_create_superadmin_integration_success(
-  auth_service: AuthService, db_session: Session, random_string: str, faker: Faker
+  auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
+  data = sample_data(db_session, faker)
+
   # Arrange: Ensure the role exists in DB
   role_name = EnumUserRole.SUPER_ADMIN.value
   role = db_session.query(Role).filter_by(name=role_name).first()
@@ -88,16 +106,14 @@ def test_create_superadmin_integration_success(
     db_session.add(role)
     db_session.commit()
 
-  email = f"{random_string}_{faker.email()}"
-  password = faker.password()
-
+  # Arrange: Create user data
   user_data = UserCreateSchema(
-    email=email,
-    password=password,
-    first_name=f"{faker.first_name()}",
-    last_name=f"{faker.last_name()}",
-    address=f"{faker.address()}",
-    phone_number=f"{faker.phone_number()}",
+    email=data["email"],
+    password=data["password"],
+    first_name=data["first_name"],
+    last_name=data["last_name"],
+    address=data["address"],
+    phone_number=data["phone_number"],
     role=EnumUserRole.SUPER_ADMIN,
   )
 
@@ -105,14 +121,59 @@ def test_create_superadmin_integration_success(
   created_user = auth_service.register(user_data)
 
   # Verify
-  db_user = db_session.query(User).filter_by(email=email).first()
+  db_user = db_session.query(User).filter_by(email=data["email"]).first()
   assert db_user is not None
   assert db_user.id == created_user.id
   assert db_user.uuid == created_user.uuid
-  assert db_user.password != password
+  assert db_user.password != data["password"]
 
   user_role = db_session.query(UserRole).filter_by(user_id=db_user.id).first()
   assert user_role is not None
 
   db_role = db_session.query(Role).filter_by(id=user_role.role_id).first()
   assert db_role.name == EnumUserRole.SUPER_ADMIN.value
+
+
+def test_duplicate_email_integration_error(
+  auth_service: AuthService, db_session: Session, faker: Faker
+) -> None:
+  data = sample_data(db_session, faker)
+
+  # Arrange: Ensure the role exists in DB
+  role_name = EnumUserRole.SUPER_ADMIN.value
+  role = db_session.query(Role).filter_by(name=role_name).first()
+  if not role:
+    role = Role(name=role_name, description="Test Superadmin Role")
+    db_session.add(role)
+    db_session.commit()
+
+  # Arrange: Create user data
+  first_user_data = UserCreateSchema(
+    email=data["email"],
+    password=data["password"],
+    first_name=data["first_name"],
+    last_name=data["last_name"],
+    address=data["address"],
+    phone_number=data["phone_number"],
+    role=EnumUserRole.SUPER_ADMIN,
+  )
+
+  # Act
+  auth_service.register(first_user_data)
+
+  # Verify
+  db_user = db_session.query(User).filter_by(email=data["email"]).first()
+  assert db_user is not None
+
+  # Assert
+  with pytest.raises(UserAlreadyExistExceptionError, match="A user with this email already exists"):
+    second_user_data = UserCreateSchema(
+      email=data["email"],
+      password=data["password"],
+      first_name=data["first_name"],
+      last_name=data["last_name"],
+      address=data["address"],
+      phone_number=data["phone_number"],
+      role=EnumUserRole.SUPER_ADMIN,
+    )
+    auth_service.register(second_user_data)
