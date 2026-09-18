@@ -35,7 +35,7 @@ def faker() -> Faker:
 
 
 @pytest.fixture()
-def private_key() -> str:
+def private_key_fixture() -> str:
   return (
     "-----BEGIN EC PRIVATE KEY-----\n"
     "MHcCAQEEIG2KLeKlBGvqsgYuONt25EYRWeUqnAuEeYaRWI5vMyvUoAoGCCqGSM49\n"
@@ -46,7 +46,7 @@ def private_key() -> str:
 
 
 @pytest.fixture()
-def public_key() -> str:
+def public_key_fixture() -> str:
   return (
     "-----BEGIN PUBLIC KEY-----\n"
     "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIOmFjFCnGcB+thM1BN/sTm/RQpCG\n"

@@ -16,12 +16,12 @@ from api.modules.user.repository import UserRepository, UserRoleRepository
 
 @pytest.fixture
 def auth_service(
-  db_session: Session, tmp_path: Path, private_key: str, public_key: str
+  db_session: Session, tmp_path: Path, private_key_fixture: str, public_key_fixture: str
 ) -> AuthService:
   priv_file = tmp_path / "private_key.pem"
   pub_file = tmp_path / "public_key.pem"
-  priv_file.write_text(private_key)
-  pub_file.write_text(public_key)
+  priv_file.write_text(private_key_fixture)
+  pub_file.write_text(public_key_fixture)
 
   from api.modules.auth.jwt.service import settings
 

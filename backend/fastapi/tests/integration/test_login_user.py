@@ -19,13 +19,13 @@ settings = get_settings()
 
 @pytest.fixture
 def auth_service(
-  db_session: Session, tmp_path: Path, private_key: str, public_key: str
+  db_session: Session, tmp_path: Path, private_key_fixture: str, public_key_fixture: str
 ) -> AuthService:
   # 1. Create temporary PEM files in the test runner isolated directory
   priv_file = tmp_path / "private_key.pem"
   pub_file = tmp_path / "public_key.pem"
-  priv_file.write_text(private_key)
-  pub_file.write_text(public_key)
+  priv_file.write_text(private_key_fixture)
+  pub_file.write_text(public_key_fixture)
 
   # 2. Import the settings instance specifically from the jwt service module
   from api.modules.auth.jwt.service import settings
