@@ -46,13 +46,11 @@ def auth_service(db_session: Session, tmp_path: Path) -> AuthService:
     patch.object(settings, "private_key_path", priv_file),
     patch.object(settings, "public_key_path", pub_file),
   ):
-    jwt_service = JwtService()
-
     return AuthService(
       repository=AuthRepository(db_session),
       user_repository=UserRepository(db_session),
       user_role_repository=UserRoleRepository(db_session),
-      jwt_service=jwt_service,
+      jwt_service=JwtService(),
       password_service=PasswordService(),
     )
 
