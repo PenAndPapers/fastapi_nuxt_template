@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -12,6 +13,22 @@ class TokenType(StrEnum):
   PASSWORD_UPDATE = "password_update"  # noqa: S105
 
 
+class GeneratedToken(BaseModel):
+  encoded: str
+  exp: int
+  family_id: str
+
+
+class TokenSchema(BaseModel):
+  token_hash: str = Field(..., description="Hashed token string.")
+  token_type: TokenType = Field(..., description="Token type.")
+  expires_at: datetime = Field(..., description="Expiration time as a datetime object.")
+  is_revoked: bool = Field(False, description="Is the token revoked?")
+  user_id: int = Field(..., description="User ID associated with the token.")
+  device_id: int = Field(..., description="Device ID associated with the token.")
+  family_id: str = Field(..., description="Family ID associated with the token.")
+
+
 class SessionToken(BaseModel):
   access_token: str = Field(..., description="Access token for API requests.")
   access_exp: int = Field(
@@ -20,6 +37,40 @@ class SessionToken(BaseModel):
   refresh_token: str = Field(..., description="Refresh token for obtaining new access tokens.")
   refresh_exp: int = Field(
     ..., description="Expiration time as a Unix epoch timestamp (seconds) for the refresh token."
+  )
+
+
+class DeviceSchema(BaseModel):
+  client_device_id: str = Field(
+    ..., description="Client device ID.", json_schema_extra={"example": "1234567890"}
+  )
+  device_type: str | None = Field(
+    None,
+    description="Device type (e.g., 'PC', 'Mobile', 'Tablet').",
+    json_schema_extra={"example": "Mobile"},
+  )
+  os: str | None = Field(
+    None,
+    description="Operating system (e.g., 'Windows', 'macOS', 'Linux').",
+    json_schema_extra={"example": "macOS"},
+  )
+  browser: str | None = Field(
+    None,
+    description="Browser (e.g., 'Chrome', 'Firefox', 'Safari').",
+    json_schema_extra={"example": "Chrome"},
+  )
+  ip_address: str | None = Field(
+    None, description="IP address (IPv4 or IPv6)", json_schema_extra={"example": "192.168.1.1"}
+  )
+  latitude: float | None = Field(
+    None,
+    description="Latitude of the user's location (if available)",
+    json_schema_extra={"example": 37.7749},
+  )
+  longitude: float | None = Field(
+    None,
+    description="Longitude of the user's location (if available)",
+    json_schema_extra={"example": 122.4194},
   )
 
 
@@ -113,11 +164,16 @@ class AuthLoginSchema(BaseModel):
 
 
 class AuthForgetPasswordSchema(BaseModel):
-  email: EmailStr
+  email: EmailStr = Field(
+    ..., description="Email address", json_schema_extra={"example": "johndoe@example.com"}
+  )
+  device: DeviceSchema
 
 
 class AuthResetPasswordSchema(BaseModel):
-  email: EmailStr
+  email: EmailStr = Field(
+    ..., description="Email address", json_schema_extra={"example": "johndoe@example.com"}
+  )
   password: str = Field(..., min_length=8, max_length=20, description="New password")
   confirm_password: str = Field(
     ..., min_length=8, max_length=20, description="Confirm new password"
