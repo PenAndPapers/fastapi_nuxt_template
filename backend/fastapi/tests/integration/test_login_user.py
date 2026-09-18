@@ -1,28 +1,60 @@
+from pathlib import Path
+from unittest.mock import patch
+
 import pytest
 from faker import Faker
 from sqlalchemy.orm import Session
 
+from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.password.service import PasswordService
+from api.modules.auth.repository import AuthRepository
 from api.modules.auth.schema import AuthLoginSchema, SessionToken
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
+from api.modules.user.repository import UserRepository, UserRoleRepository
+from core.config import get_settings
+
+settings = get_settings()
+
+# Create valid fixture keys (with 5 hyphens)
+MOCK_PRIVATE_KEY = (
+  "-----BEGIN EC PRIVATE KEY-----\n"
+  "MHcCAQEEIG2KLeKlBGvqsgYuONt25EYRWeUqnAuEeYaRWI5vMyvUoAoGCCqGSM49\n"
+  "AwEHoUQDQgAEIOmFjFCnGcB+thM1BN/sTm/RQpCGOo9Atwmh+1Vl+jsIeBYUnMEQ\n"
+  "U9Sg4VTlVQsl+1uwtPR+TQoFQv7j1OVu7Q==\n"
+  "-----END EC PRIVATE KEY-----\n"
+)
+
+MOCK_PUBLIC_KEY = (
+  "-----BEGIN PUBLIC KEY-----\n"
+  "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIOmFjFCnGcB+thM1BN/sTm/RQpCG\n"
+  "Oo9Atwmh+1Vl+jsIeBYUnMEQU9Sg4VTlVQsl+1uwtPR+TQoFQv7j1OVu7Q==\n"
+  "-----END PUBLIC KEY-----\n"
+)
 
 
 @pytest.fixture
-def auth_service(db_session: Session) -> AuthService:
-  # Reusing the same setup as create_user integration tests
-  from api.modules.auth.jwt.service import JwtService
-  from api.modules.auth.password.service import PasswordService
-  from api.modules.auth.repository import AuthRepository
-  from api.modules.user.repository import UserRepository, UserRoleRepository
+def auth_service(db_session: Session, tmp_path: Path) -> AuthService:
+  # 1. Create temporary PEM files in the test runner isolated directory
+  priv_file = tmp_path / "private_key.pem"
+  pub_file = tmp_path / "public_key.pem"
+  priv_file.write_text(MOCK_PRIVATE_KEY)
+  pub_file.write_text(MOCK_PUBLIC_KEY)
 
-  return AuthService(
-    repository=AuthRepository(db_session),
-    user_repository=UserRepository(db_session),
-    user_role_repository=UserRoleRepository(db_session),
-    jwt_service=JwtService(),
-    password_service=PasswordService(),
-  )
+  # 2. Patch the settings to use the temporary files
+  with (
+    patch.object(settings, "private_key_path", priv_file),
+    patch.object(settings, "public_key_path", pub_file),
+  ):
+    jwt_service = JwtService()
+
+    return AuthService(
+      repository=AuthRepository(db_session),
+      user_repository=UserRepository(db_session),
+      user_role_repository=UserRoleRepository(db_session),
+      jwt_service=jwt_service,
+      password_service=PasswordService(),
+    )
 
 
 def sample_data(db_session: Session, faker: Faker) -> dict[str, str]:
@@ -95,12 +127,12 @@ def test_login_failed_invalid_password_integration(
   db_session.add(test_user)
   db_session.commit()
 
-  login_data = AuthLoginSchema(email=data["invalid_email"], password=data["invalid_password"])
+  login_data = AuthLoginSchema(email=data["email"], password=data["invalid_password"])
 
   # Act & Assert
   from api.modules.auth.exception import InvalidCredentialsError
 
-  with pytest.raises(InvalidCredentialsError):
+  with pytest.raises(InvalidCredentialsError, match="Incorrect email or password"):
     auth_service.login(login_data)
 
 
@@ -124,10 +156,10 @@ def test_login_failed_user_not_found_integration(
   db_session.add(test_user)
   db_session.commit()
 
-  login_data = AuthLoginSchema(email=data["invalid_email"], password=data["invalid_password"])
+  login_data = AuthLoginSchema(email=data["invalid_email"], password=data["password"])
 
   # Act & Assert
   from api.modules.auth.exception import InvalidCredentialsError
 
-  with pytest.raises(InvalidCredentialsError):
+  with pytest.raises(InvalidCredentialsError, match="Incorrect email or password"):
     auth_service.login(login_data)
