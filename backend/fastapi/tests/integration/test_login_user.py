@@ -16,30 +16,16 @@ from core.config import get_settings
 
 settings = get_settings()
 
-# Create valid fixture keys (with 5 hyphens)
-MOCK_PRIVATE_KEY = (
-  "-----BEGIN EC PRIVATE KEY-----\n"
-  "MHcCAQEEIG2KLeKlBGvqsgYuONt25EYRWeUqnAuEeYaRWI5vMyvUoAoGCCqGSM49\n"
-  "AwEHoUQDQgAEIOmFjFCnGcB+thM1BN/sTm/RQpCGOo9Atwmh+1Vl+jsIeBYUnMEQ\n"
-  "U9Sg4VTlVQsl+1uwtPR+TQoFQv7j1OVu7Q==\n"
-  "-----END EC PRIVATE KEY-----\n"
-)
-
-MOCK_PUBLIC_KEY = (
-  "-----BEGIN PUBLIC KEY-----\n"
-  "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIOmFjFCnGcB+thM1BN/sTm/RQpCG\n"
-  "Oo9Atwmh+1Vl+jsIeBYUnMEQU9Sg4VTlVQsl+1uwtPR+TQoFQv7j1OVu7Q==\n"
-  "-----END PUBLIC KEY-----\n"
-)
-
 
 @pytest.fixture
-def auth_service(db_session: Session, tmp_path: Path) -> AuthService:
+def auth_service(
+  db_session: Session, tmp_path: Path, private_key: str, public_key: str
+) -> AuthService:
   # 1. Create temporary PEM files in the test runner isolated directory
   priv_file = tmp_path / "private_key.pem"
   pub_file = tmp_path / "public_key.pem"
-  priv_file.write_text(MOCK_PRIVATE_KEY)
-  pub_file.write_text(MOCK_PUBLIC_KEY)
+  priv_file.write_text(private_key)
+  pub_file.write_text(public_key)
 
   # 2. Import the settings instance specifically from the jwt service module
   from api.modules.auth.jwt.service import settings
