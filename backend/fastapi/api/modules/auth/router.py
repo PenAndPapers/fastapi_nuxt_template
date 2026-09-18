@@ -1,22 +1,29 @@
 from fastapi import APIRouter, status
 
-from api.modules.user.schema import UserCreateResponseSchema, UserCreateSchema
+from api.modules.user.schema import UserCreateResponseSchema
 
 from .dependency import AuthServiceDep
-from .schema import AuthLoginSchema, JwtPayload, SessionToken, SigningKeyResponse, TokenType
+from .schema import (
+  AuthLoginSchema,
+  AuthRegisterSchema,
+  JwtPayload,
+  SessionToken,
+  SigningKeyResponse,
+  TokenType,
+)
 
 router = APIRouter()
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, summary="Register a new user")
-def register(user: UserCreateSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
+def register(user: AuthRegisterSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
   """
   Register a new user.
 
   This endpoint handle user registration, including validating input, creating a new user
   and assigning role to user.
   """
-  new_user = auth_service.create_user(user)
+  new_user = auth_service.register(user)
 
   return new_user
 

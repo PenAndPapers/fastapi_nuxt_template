@@ -3,5 +3,5 @@ class AppExceptionError(Exception):
   error_code = "INTERNAL_SERVER_ERROR"
 
   def __init__(self, message: str | None) -> None:
-    self.message = message or "Error: An unexpected error occured"
+    self.message = message or "An unexpected error occured"
     super().__init__(self.message)

@@ -37,6 +37,24 @@ class JwtService:
     """
     return str(uuid4())
 
+  def get_default_jwt_claims(self, token_type: TokenType) -> dict:
+    """Get default JWT claims for a new token.
+
+    Args:
+        token_type: The type of token for which to get the claims.
+
+    Returns:
+        dict: Default claims payload.
+    """
+
+    return {
+      "iss": self._jwt_issuer,
+      "aud": self._jwt_audience,
+      "iat": int(datetime.now().timestamp()),
+      "nbf": int(datetime.now().timestamp()),
+      "exp": int(datetime.now().timestamp() + self.get_token_type_expiration(token_type)),
+    }
+
   def create_token(self, token_type: TokenType, sub: str, family_id: str) -> tuple[str, int]:
     """Create a new JWT token.
 
@@ -82,24 +100,6 @@ class JwtService:
         return self._jwt_password_update_expiration_seconds
       case _:
         raise ValueError(f"Unknown token type: {token_type}")
-
-  def get_default_jwt_claims(self, token_type: TokenType) -> dict:
-    """Get default JWT claims for a new token.
-
-    Args:
-        token_type: The type of token for which to get the claims.
-
-    Returns:
-        dict: Default claims payload.
-    """
-
-    return {
-      "iss": self._jwt_issuer,
-      "aud": self._jwt_audience,
-      "iat": int(datetime.now().timestamp()),
-      "nbf": int(datetime.now().timestamp()),
-      "exp": int(datetime.now().timestamp() + self.get_token_type_expiration(token_type)),
-    }
 
   def encode(self, payload: JwtPayload) -> str:
     """Encode a payload dictionary or model into a signed JWT string.
