@@ -41,6 +41,7 @@ PasswordServiceDep = Annotated[PasswordService, Depends(PasswordService)]
 
 # 3. Domain Services (depends on repository)
 def get_auth_service(
+  db: DatabaseDep,
   repository: AuthRepositoryDep,
   device_repository: DeviceRepositoryDep,
   user_repository: UserRepositoryDep,
@@ -49,6 +50,7 @@ def get_auth_service(
   password_service: PasswordServiceDep,
 ) -> AuthService:
   return AuthService(
+    db,
     repository,
     device_repository,
     user_repository,

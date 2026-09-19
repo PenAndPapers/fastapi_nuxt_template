@@ -1,7 +1,8 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import Self
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 from api.modules.user.schema import UserCreateSchema
 
@@ -28,6 +29,8 @@ class TokenSchema(BaseModel):
   device_id: int = Field(..., description="Device ID associated with the token.")
   family_id: str = Field(..., description="Family ID associated with the token.")
 
+  model_config = {"from_attributes": True}
+
 
 class SessionToken(BaseModel):
   access_token: str = Field(..., description="Access token for API requests.")
@@ -38,6 +41,8 @@ class SessionToken(BaseModel):
   refresh_exp: int = Field(
     ..., description="Expiration time as a Unix epoch timestamp (seconds) for the refresh token."
   )
+
+  model_config = {"from_attributes": True}
 
 
 class DeviceSchema(BaseModel):
@@ -72,6 +77,8 @@ class DeviceSchema(BaseModel):
     description="Longitude of the user's location (if available)",
     json_schema_extra={"example": 122.4194},
   )
+
+  model_config = {"from_attributes": True}
 
 
 class JwtPayload(BaseModel):
@@ -132,11 +139,7 @@ class JwtPayload(BaseModel):
     "Used to invalidate the ENTIRE session family in Redis if refresh token theft/reuse is detected.",
   )
 
-  model_config = ConfigDict(
-    use_enum_values=True,
-    # Strips extra fields or validates strict payload shapes if needed
-    extra="forbid",
-  )
+  model_config = {"from_attributes": True, "extra": "forbid", "use_enum_values": True}
 
 
 class SigningKeyResponse(BaseModel):
@@ -177,7 +180,24 @@ class AuthResetPasswordSchema(BaseModel):
     description="Reset password token",
     json_schema_extra={"example": "eyJhbGciOiJIU..."},
   )
-  password: str = Field(..., min_length=8, max_length=20, description="New password")
-  confirm_password: str = Field(
-    ..., min_length=8, max_length=20, description="Confirm new password"
+  new_password: str = Field(
+    ...,
+    min_length=8,
+    max_length=20,
+    description="New password",
+    json_schema_extra={"example": "P@ssw0rd#123"},
   )
+  confirm_password: str = Field(
+    ...,
+    min_length=8,
+    max_length=20,
+    description="Confirm new password",
+    json_schema_extra={"example": "P@ssw0rd#123"},
+  )
+
+  @model_validator(mode="after")
+  def verify_password_match(self) -> Self:
+    if self.new_password != self.confirm_password:
+      raise ValueError("Passwords do not match")
+
+    return self

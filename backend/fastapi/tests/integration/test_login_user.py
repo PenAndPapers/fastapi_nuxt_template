@@ -39,6 +39,7 @@ def auth_service(
     jwt_service = JwtService()
 
     return AuthService(
+      db=db_session,
       repository=AuthRepository(db_session),
       device_repository=DeviceRepository(db_session),
       user_repository=UserRepository(db_session),

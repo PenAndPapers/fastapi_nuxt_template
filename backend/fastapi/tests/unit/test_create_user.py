@@ -8,6 +8,11 @@ from api.modules.user.model import User
 from api.modules.user.schema import EnumUserRole, UserCreateSchema
 
 
+@pytest.fixture()
+def mock_db_session() -> MagicMock:
+  return MagicMock()
+
+
 @pytest.fixture
 def mock_auth_repo() -> MagicMock:
   return MagicMock()
@@ -43,6 +48,7 @@ def mock_password_service() -> MagicMock:
 
 @pytest.fixture
 def auth_service(
+  mock_db_session: MagicMock,
   mock_auth_repo: MagicMock,
   mock_device_repo: MagicMock,
   mock_user_repo: MagicMock,
@@ -51,6 +57,7 @@ def auth_service(
   mock_password_service: MagicMock,
 ) -> AuthService:
   return AuthService(
+    db=mock_db_session,
     repository=mock_auth_repo,
     device_repository=mock_device_repo,
     user_repository=mock_user_repo,
