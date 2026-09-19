@@ -8,6 +8,11 @@ from api.modules.auth.service import AuthService
 from api.modules.user.model import User
 
 
+@pytest.fixture()
+def mock_db_session() -> MagicMock:
+  return MagicMock()
+
+
 @pytest.fixture
 def mock_auth_repo() -> MagicMock:
   return MagicMock()
@@ -45,6 +50,7 @@ def mock_password_service() -> MagicMock:
 
 @pytest.fixture
 def auth_service(
+  mock_db_session: MagicMock,
   mock_auth_repo: MagicMock,
   mock_device_repo: MagicMock,
   mock_user_repo: MagicMock,
@@ -53,6 +59,7 @@ def auth_service(
   mock_password_service: MagicMock,
 ) -> AuthService:
   return AuthService(
+    db=mock_db_session,
     repository=mock_auth_repo,
     device_repository=mock_device_repo,
     user_repository=mock_user_repo,
@@ -66,9 +73,9 @@ def sample_data() -> dict[str, str]:
   return {
     "email": "test@example.com",
     "nonexistent_email": "nonexistent@example.com",
-    "password": "password123",
+    "password": "P@ssword123",
+    "invalid_password": "Wr0ng_pa$$word",
     "hashed_password": "hashed_password",
-    "invalid_password": "wrong_password",
     "uuid": "user-uuid-123",
     "token_val": "token_val",
   }

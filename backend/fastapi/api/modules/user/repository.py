@@ -2,6 +2,7 @@ from pydantic import EmailStr
 from sqlalchemy import select
 
 from core.database import DatabaseDep
+from core.exception import DBExceptionError
 from core.schema import PositiveInt
 
 from .exception import UserAlreadyExistExceptionError, UserOrRoleNotFoundExceptionError
@@ -32,6 +33,16 @@ class UserRepository:
 
     return result
 
+  def get_user_by_id(self, user_id: PositiveInt) -> User | None:
+    query = select(User).filter(User.id == user_id)
+    result = self.db.execute(query).scalar_one_or_none()
+    return result
+
+  def get_user_by_uuid(self, uuid: str) -> User | None:
+    query = select(User).filter(User.uuid == uuid)
+    result = self.db.execute(query).scalar_one_or_none()
+    return result
+
   def get_user_with_permissions(self, user_id: int) -> User | None:
     from sqlalchemy.orm import joinedload
 
@@ -41,6 +52,14 @@ class UserRepository:
       .filter(User.id == user_id)
       .first()
     )
+
+  def update_password(self, user_id: PositiveInt, new_password: str) -> User | None:
+    db_user = self.get_user_by_id(user_id)
+
+    if not db_user:
+      raise DBExceptionError("Unable to process request")
+
+    db_user.password = new_password
 
   def get_user(self) -> None:
     pass

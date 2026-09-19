@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Integer, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -16,7 +16,10 @@ class AppBaseModel(Base):
   id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
   created_at: Mapped[datetime] = mapped_column(
-    DateTime(timezone=True), server_default=func.now(), nullable=False
+    DateTime(timezone=True),
+    server_default=func.now(),
+    default=lambda: datetime.now(UTC),
+    nullable=False,
   )
   updated_at: Mapped[datetime] = mapped_column(
     DateTime(timezone=True),

@@ -39,6 +39,7 @@ def auth_service(
     jwt_service = JwtService()
 
     return AuthService(
+      db=db_session,
       repository=AuthRepository(db_session),
       device_repository=DeviceRepository(db_session),
       user_repository=UserRepository(db_session),
@@ -53,9 +54,9 @@ def sample_data(db_session: Session, faker: Faker) -> dict[str, str]:
 
   return {
     "email": f"test_integration_login_function_{session_id}_{faker.email()}",
-    "password": faker.password(),
+    "password": "P@ssw0rd123",
+    "invalid_password": "Wrong_P@ss123",
     "invalid_email": f"test_integration_login_function_{session_id}_{faker.email()}",
-    "invalid_password": faker.password(),
     "uuid": faker.uuid4(),
     "token_val": faker.uuid4(),
     "first_name": faker.first_name(),

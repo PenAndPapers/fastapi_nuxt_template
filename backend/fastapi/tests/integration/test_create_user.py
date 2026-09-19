@@ -28,6 +28,7 @@ def auth_service(db_session: Session) -> AuthService:
     password_service = PasswordService()
 
     return AuthService(
+      db=db_session,
       repository=auth_repo,
       device_repository=device_repo,
       user_repository=user_repo,
