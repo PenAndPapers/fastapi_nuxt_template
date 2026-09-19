@@ -163,6 +163,8 @@ class AuthService:
     # - rate limiting.
     # - send password reset success message to user's email.
 
+    print(payload)
+
     # Verify token hash exists in database
     token_hash = hash_token(payload.token)
     db_token = self.repository.get_token_by_hash(token_hash)

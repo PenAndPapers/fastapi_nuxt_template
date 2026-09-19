@@ -15,7 +15,7 @@ from utils.password import is_valid_password
 # ----------------------------------------------------------
 
 NonEmptyStr = Annotated[str, StringConstraints(min_length=1, strip_whitespace=True)]
-ValidPassword = Annotated[str, MinLen(8), MaxLen(20), AfterValidator(is_valid_password)]
+ValidPassword = Annotated[str, AfterValidator(is_valid_password)]
 
 
 # ----------------------------------------------------------
