@@ -153,7 +153,7 @@ def test_reset_password_expired_token_integration(
   token_string = str(token_obj.encoded)
 
   reset_token = Auth(
-    token_hash=token_string,
+    token_hash=hash_token(token_string),
     token_type=TokenType.PASSWORD_UPDATE,
     user_id=test_user.id,
     expires_at=datetime.now(UTC) - timedelta(hours=1),
