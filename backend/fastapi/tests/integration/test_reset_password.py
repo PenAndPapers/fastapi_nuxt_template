@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,6 +15,7 @@ from api.modules.auth.schema import AuthResetPasswordSchema, TokenType
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
 from api.modules.user.repository import UserRepository, UserRoleRepository
+from utils.hash import hash_token
 
 
 @pytest.fixture
@@ -47,11 +48,10 @@ def auth_service(
 
 def sample_user_data(db_session: Session, faker: Faker) -> dict:
   session_id = hex(id(db_session))
-  password = faker.password()
   return {
     "email": f"test_integration_reset_password_{session_id}_{faker.email()}",
-    "new_password": password,
-    "confirm_password": password,
+    "new_password": "P@ssW0rd123",
+    "confirm_password": "P@ssW0rd123",
     "invalid_password": faker.password(),
     "uuid": faker.uuid4(),
     "family_id": faker.uuid4(),
@@ -86,10 +86,10 @@ def test_reset_password_success_integration(
   token_string = str(token_obj.encoded)
 
   reset_token = Auth(
-    token_hash=token_string,
+    token_hash=hash_token(token_string),
     token_type=TokenType.PASSWORD_UPDATE,
     user_id=test_user.id,
-    expires_at=datetime.now() + timedelta(hours=1),
+    expires_at=datetime.now(UTC) + timedelta(hours=1),
     family_id=user_data["family_id"],
     is_revoked=False,
   )
@@ -112,6 +112,7 @@ def test_reset_password_success_integration(
   assert PasswordService().verify_password(user_data["new_password"], updated_user.password)
 
   assert reset_token.is_revoked is True
+  assert reset_token.deleted_at is not None
 
 
 def test_reset_password_invalid_token_integration(
@@ -155,7 +156,7 @@ def test_reset_password_expired_token_integration(
     token_hash=token_string,
     token_type=TokenType.PASSWORD_UPDATE,
     user_id=test_user.id,
-    expires_at=datetime.now() - timedelta(hours=1),
+    expires_at=datetime.now(UTC) - timedelta(hours=1),
     family_id=user_data["family_id"],
     is_revoked=False,
   )

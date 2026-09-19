@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
@@ -70,11 +70,16 @@ def auth_service(
 def sample_data() -> dict:
   return {
     "token": "valid_token_hash",
-    "invalid_token": "invalid_token_hash",
-    "new_password": "new_password123",
-    "confirm_password": "new_password123",
+    "invalid_token": "Inv@lid_Token_hash",
+    "new_password": "New_P@ssword_123",
+    "confirm_password": "New_P@ssword_123",
     "uuid": "user-uuid-123",
     "email": "test@example.com",
+    "iss": "http://localhost:8000",
+    "aud": "http://localhost:3000",
+    "sub": "user-uuid-123",
+    "jti": "token-jti-123",
+    "family_id": "family_123",
   }
 
 
@@ -98,7 +103,7 @@ def test_reset_password_success(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
-    expires_at=datetime.now() + timedelta(hours=1),
+    expires_at=datetime.now(UTC) + timedelta(hours=1),
   )
 
   mock_auth_repo.get_token_by_hash.return_value = mock_token
@@ -106,14 +111,14 @@ def test_reset_password_success(
   # Mock JWT decode
   mock_decoded_token = {
     "token_type": TokenType.PASSWORD_UPDATE,
-    "exp": int((datetime.now() + timedelta(hours=1)).timestamp()),
-    "nbf": int(datetime.now().timestamp()),
-    "iat": int(datetime.now().timestamp()),
-    "iss": "http://localhost:8000",
-    "aud": "http://localhost:3000",
-    "sub": data["uuid"],
-    "jti": "token-jti-123",
-    "family_id": "family_123",
+    "exp": int((datetime.now(UTC) + timedelta(hours=1)).timestamp()),
+    "nbf": int(datetime.now(UTC).timestamp()),
+    "iat": int(datetime.now(UTC).timestamp()),
+    "iss": data["iss"],
+    "aud": data["aud"],
+    "sub": data["sub"],
+    "jti": data["jti"],
+    "family_id": data["family_id"],
   }
   mock_jwt_service.decode.return_value = mock_decoded_token
 
@@ -121,7 +126,7 @@ def test_reset_password_success(
   mock_user_repo.get_user_by_uuid.return_value = mock_user
 
   # Set mock token family_id to match
-  mock_token.family_id = "family_123"
+  mock_token.family_id = data["family_id"]
 
   # Act
   result = auth_service.reset_password(payload)
@@ -129,7 +134,9 @@ def test_reset_password_success(
   # Assert
   assert result is True
   mock_user_repo.update_password.assert_called_once()
-  mock_auth_repo.revoke_token.assert_called_once_with(mock_token.id)
+  mock_auth_repo.revoke_user_active_tokens.assert_called_once_with(
+    mock_user.id, TokenType.PASSWORD_UPDATE
+  )
   mock_db_session.commit.assert_called_once()
 
 
@@ -165,7 +172,7 @@ def test_reset_password_expired_token(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
-    expires_at=datetime.now() - timedelta(hours=1),
+    expires_at=datetime.now(UTC) - timedelta(hours=1),
   )
   mock_auth_repo.get_token_by_hash.return_value = mock_token
 
@@ -188,7 +195,7 @@ def test_reset_password_wrong_token_type(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.ACCESS,
-    expires_at=datetime.now(),
+    expires_at=datetime.now(UTC),
   )
   mock_auth_repo.get_token_by_hash.return_value = mock_token
 
@@ -212,7 +219,7 @@ def test_reset_password_decode_failed(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
-    expires_at=datetime.now(),
+    expires_at=datetime.now(UTC),
   )
   mock_auth_repo.get_token_by_hash.return_value = mock_token
   mock_jwt_service.decode.return_value = None
@@ -238,7 +245,7 @@ def test_reset_password_user_not_found(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
-    expires_at=datetime.now(),
+    expires_at=datetime.now(UTC),
   )
   mock_auth_repo.get_token_by_hash.return_value = mock_token
   mock_jwt_service.decode.return_value = {"sub": "nonexistent_uuid"}
@@ -265,7 +272,7 @@ def test_reset_password_mismatch_attributes(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
-    expires_at=datetime.now(),
+    expires_at=datetime.now(UTC),
   )
   mock_auth_repo.get_token_by_hash.return_value = mock_token
 

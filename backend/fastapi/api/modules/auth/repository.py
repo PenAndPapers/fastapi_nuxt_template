@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import select
 
 from core.database import DatabaseDep
@@ -37,8 +39,6 @@ class AuthRepository:
     )
     tokens = list(self.db.execute(query).scalars().all())
 
-    print(tokens)
-
     return tokens
 
   def revoke_token(self, token_id: PositiveInt) -> None:
@@ -52,8 +52,10 @@ class AuthRepository:
   def revoke_user_active_tokens(self, user_id: PositiveInt, token_type: TokenType) -> None:
     tokens = self.get_user_active_tokens_by_type(user_id, token_type)
 
+    # revoke tokens and set deleted_at to current time
     for token in tokens:
       token.is_revoked = True
+      token.deleted_at = datetime.now(UTC)
 
 
 class DeviceRepository:

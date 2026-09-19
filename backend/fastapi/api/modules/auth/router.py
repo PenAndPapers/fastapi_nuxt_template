@@ -76,7 +76,7 @@ def forget_password(
   )
 
 
-@router.post("/reset-password", summary="Reset password for user")
+@router.post("/reset-password", status_code=status.HTTP_200_OK, summary="Reset password for user")
 def reset_password(
   payload: AuthResetPasswordSchema, auth_service: AuthServiceDep
 ) -> GenericResponseMessage:

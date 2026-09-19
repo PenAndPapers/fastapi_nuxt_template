@@ -188,7 +188,7 @@ class AuthResetPasswordSchema(BaseModel):
     description="New password",
     json_schema_extra={"example": "P@ssw0rd#123"},
   )
-  confirm_password: ValidPassword = Field(
+  confirm_password: str = Field(
     ...,
     min_length=8,
     max_length=20,
@@ -202,15 +202,3 @@ class AuthResetPasswordSchema(BaseModel):
       raise ValueError("Passwords do not match")
 
     return self
-
-  @model_validator(mode="after")
-  def verify_password_strength(self) -> Self:
-    # check password is mixed of uppercase, lowercase, digit, and special character
-    if not any(char.isupper() for char in self.new_password):
-      raise ValueError("Password must contain uppercase letters")
-    if not any(char.islower() for char in self.new_password):
-      raise ValueError("Password must contain lowercase letters")
-    if not any(char.isdigit() for char in self.new_password):
-      raise ValueError("Password must contain digits")
-    if not any(char in self.new_password for char in "!@#$%^&*()_+-=[]{}|;:'\",.<>/?"):
-      raise ValueError("Password must contain special characters")

@@ -73,9 +73,9 @@ def sample_data() -> dict[str, str]:
   return {
     "email": "test@example.com",
     "nonexistent_email": "nonexistent@example.com",
-    "password": "password123",
+    "password": "P@ssword123",
+    "invalid_password": "Wr0ng_pa$$word",
     "hashed_password": "hashed_password",
-    "invalid_password": "wrong_password",
     "uuid": "user-uuid-123",
     "token_val": "token_val",
   }
