@@ -101,32 +101,32 @@ class AuthService:
       TokenType.PASSWORD_UPDATE, db_user.uuid, self.jwt_service.get_token_jti()
     )
 
+    device_to_store = DeviceSchema(
+      client_device_id=device.client_device_id,
+      device_type=device.device_type,
+      os=device.os,
+      browser=device.browser,
+      ip_address=device.ip_address,
+      latitude=device.latitude,
+      longitude=device.longitude,
+    )
+
+    token_to_store = TokenSchema(
+      token_hash=str(forget_password_token.encoded),
+      token_type=TokenType.PASSWORD_UPDATE,
+      expires_at=forget_password_token.exp,
+      family_id=forget_password_token.family_id,
+      is_revoked=False,
+    )
+
     # Store device token in database
     device = self.device_repository.store_device(
-      DeviceSchema(
-        client_device_id=device.client_device_id,
-        device_type=device.device_type,
-        os=device.os,
-        browser=device.browser,
-        ip_address=device.ip_address,
-        latitude=device.latitude,
-        longitude=device.longitude,
-      ),
+      device_to_store,
       user_id=db_user.id,
     )
 
     # Store token in database
-    self.repository.store_token(
-      TokenSchema(
-        token_hash=str(forget_password_token.encoded),
-        token_type=TokenType.PASSWORD_UPDATE,
-        expires_at=forget_password_token.exp,
-        family_id=forget_password_token.family_id,
-        is_revoked=False,
-        user_id=db_user.id,
-        device_id=device.id,
-      )
-    )
+    self.repository.store_token(token_to_store)
 
     return True
 
