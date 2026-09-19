@@ -180,7 +180,15 @@ class AuthService:
     if (
       not db_token
       or db_token.is_revoked
-      or (db_token.expires_at and db_token.expires_at < datetime.now(UTC).replace(tzinfo=None))
+      or (
+        db_token.expires_at
+        and (
+          db_token.expires_at
+          if db_token.expires_at.tzinfo
+          else db_token.expires_at.replace(tzinfo=UTC)
+        )
+        < datetime.now(UTC)
+      )
       or db_token.token_type != TokenType.PASSWORD_UPDATE
     ):
       logger.error(
