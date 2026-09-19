@@ -5,13 +5,17 @@
 
 from typing import Annotated
 
-from pydantic import BaseModel, Field, StringConstraints
+from annotated_types import MaxLen, MinLen
+from pydantic import AfterValidator, BaseModel, Field, StringConstraints
+
+from utils.password import is_valid_password
 
 # ----------------------------------------------------------
 #  Custom string types
 # ----------------------------------------------------------
 
 NonEmptyStr = Annotated[str, StringConstraints(min_length=1, strip_whitespace=True)]
+ValidPassword = Annotated[str, MinLen(8), MaxLen(20), AfterValidator(is_valid_password)]
 
 
 # ----------------------------------------------------------

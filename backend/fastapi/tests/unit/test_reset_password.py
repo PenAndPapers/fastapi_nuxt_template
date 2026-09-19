@@ -70,6 +70,7 @@ def auth_service(
 def sample_data() -> dict:
   return {
     "token": "valid_token_hash",
+    "invalid_token": "invalid_token_hash",
     "new_password": "new_password123",
     "confirm_password": "new_password123",
     "uuid": "user-uuid-123",
@@ -138,7 +139,7 @@ def test_reset_password_invalid_token(
 ) -> None:
   data = sample_data()
   payload = AuthResetPasswordSchema(
-    token="invalid_token",
+    token=data["invalid_token"],
     new_password=data["new_password"],
     confirm_password=data["confirm_password"],
   )

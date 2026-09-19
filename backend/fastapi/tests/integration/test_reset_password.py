@@ -46,9 +46,10 @@ def auth_service(
 
 
 def sample_user_data(db_session: Session, faker: Faker) -> dict:
+  session_id = hex(id(db_session))
   password = faker.password()
   return {
-    "email": faker.email(),
+    "email": f"test_integration_reset_password_{session_id}_{faker.email()}",
     "new_password": password,
     "confirm_password": password,
     "invalid_password": faker.password(),
@@ -89,7 +90,7 @@ def test_reset_password_success_integration(
     token_type=TokenType.PASSWORD_UPDATE,
     user_id=test_user.id,
     expires_at=datetime.now() + timedelta(hours=1),
-    family_id="family_123",
+    family_id=user_data["family_id"],
     is_revoked=False,
   )
   db_session.add(reset_token)

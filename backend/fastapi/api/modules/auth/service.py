@@ -5,6 +5,7 @@ from api.modules.user.model import User
 from api.modules.user.repository import UserRepository, UserRoleRepository
 from core.config import get_settings
 from core.database import DatabaseDep
+from utils.hash import hash_token
 
 from .exception import InvalidCredentialsError, JwtInvalidTokenError
 from .jwt.service import JwtService
@@ -111,6 +112,13 @@ class AuthService:
     forget_password_token = self.jwt_service.create_token(
       TokenType.PASSWORD_UPDATE, db_user.uuid, self.jwt_service.get_token_jti()
     )
+    # Hash token before storing in database
+    # This is done to prevent token leakage in case of database breach
+    # or if the database is compromised
+    forget_password_token_hash = hash_token(str(forget_password_token.encoded))
+
+    print(f"token: {forget_password_token.encoded}\n\n")
+    print(f"forget_password_token_hash: {forget_password_token_hash}")
 
     device_to_store = DeviceSchema(
       client_device_id=device.client_device_id,
@@ -130,7 +138,7 @@ class AuthService:
     self.db.flush()
 
     token_to_store = TokenSchema(
-      token_hash=str(forget_password_token.encoded),
+      token_hash=forget_password_token_hash,
       token_type=TokenType.PASSWORD_UPDATE,
       expires_at=forget_password_token.exp,
       family_id=forget_password_token.family_id,
@@ -155,8 +163,9 @@ class AuthService:
     # - rate limiting.
     # - send password reset success message to user's email.
 
-    # Verify password reset token exists in database
-    db_token = self.repository.get_token_by_hash(payload.token)
+    # Verify token hash exists in database
+    token_hash = hash_token(payload.token)
+    db_token = self.repository.get_token_by_hash(token_hash)
 
     if (
       not db_token
@@ -171,7 +180,7 @@ class AuthService:
 
     # Verify password reset token by decoding it
     decoded_token = self.jwt_service.decode(
-      db_token.token_hash, audience=settings.jwt_audience, issuer=settings.jwt_issuer
+      payload.token, audience=settings.jwt_audience, issuer=settings.jwt_issuer
     )
 
     if not decoded_token:
@@ -186,11 +195,7 @@ class AuthService:
       logger.error(f"Token is not associated with any user - {payload.token}")
       raise JwtInvalidTokenError("Token is invalid or expired")
 
-    if (
-      formatted_token.sub != db_user.uuid
-      or formatted_token.family_id != db_token.family_id
-      or datetime.fromtimestamp(formatted_token.exp) < datetime.now()
-    ):
+    if formatted_token.sub != db_user.uuid or formatted_token.family_id != db_token.family_id:
       logger.error(
         f"Token is not associated with any user, family_id does not match or expired - {payload.token}"
       )
@@ -201,8 +206,8 @@ class AuthService:
       db_user.id, self.password_service.password_hash(payload.new_password)
     )
 
-    # Revoke password reset token
-    self.repository.revoke_token(db_token.id)
+    # Revoke other password reset token that are related to the user
+    self.repository.revoke_user_active_tokens(db_user.id, TokenType.PASSWORD_UPDATE)
 
     # Single transaction for all operations
     try:
