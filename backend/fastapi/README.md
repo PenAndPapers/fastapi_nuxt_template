@@ -68,8 +68,8 @@ Each feature module follows a consistent structure:
 
 - **`router.py`** — FastAPI route handlers (`@router.post()`, `@router.get()`, etc.)
 - **`dependency.py`** — FastAPI `Depends()` dependencies (auth, DB session)
-- **`service.py`** — Business logic for the module
-- **`repository.py`** — Database access layer logic for the module
-- **`schema.py`** — Pydantic `BaseModel` classes for request/response validation, DTOs
+- **`service.py`** — Business logic for the module. Commit or rollback DB transaction in service.
+- **`repository.py`** — Database access layer logic for the module. Rule of thumb do not commit any transation in repository let service handle it.
+- **`schema.py`** — Pydantic `BaseModel` classes for request/response validation, DTOs.
 - **`model.py`** — SQLAlchemy ORM model classes
 - **`exception.py`** — Custom HTTP exceptions for the module
