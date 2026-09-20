@@ -24,8 +24,17 @@ def _sample_data(db_session: Session, faker: Faker) -> dict[str, str]:
   }
 
 
-def _create_user_data(db_session: Session, faker: Faker, user_role: EnumUserRole) -> User:
+def _create_user_data(
+  db_session: Session, faker: Faker, user_role: EnumUserRole | None = None
+) -> User:
   data = _sample_data(db_session, faker)
+
+  role_name = user_role.value if user_role else EnumUserRole.USER.value
+  role = db_session.query(Role).filter_by(name=role_name).first()
+  if not role:
+    role = Role(name=role_name, description="Test User Role")
+    db_session.add(role)
+    db_session.commit()
 
   user = UserCreateSchema(
     email=data["email"],
@@ -34,7 +43,7 @@ def _create_user_data(db_session: Session, faker: Faker, user_role: EnumUserRole
     last_name=data["last_name"],
     address=data["address"],
     phone_number=data["phone_number"],
-    role=user_role,
+    role=role_name,
   )
 
   return user
