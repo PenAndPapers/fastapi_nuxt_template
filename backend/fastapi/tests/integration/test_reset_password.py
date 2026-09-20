@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 
 from api.modules.auth.exception import JwtInvalidTokenError
 from api.modules.auth.jwt.service import JwtService
-from api.modules.auth.model import Auth
+from api.modules.auth.model import AuthToken
 from api.modules.auth.password.service import PasswordService
 from api.modules.auth.repository import AuthRepository, DeviceRepository
-from api.modules.auth.schema import AuthResetPasswordSchema, TokenType
+from api.modules.auth.schema import FormAuthResetPasswordSchema, TokenType
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
 from api.modules.user.repository import UserRepository, UserRoleRepository
@@ -57,6 +57,10 @@ def sample_user_data(db_session: Session, faker: Faker) -> dict:
     "family_id": faker.uuid4(),
     "token": faker.uuid4(),
     "invalid_token": faker.uuid4(),
+    "first_name": faker.first_name(),
+    "last_name": faker.last_name(),
+    "address": faker.address(),
+    "phone_number": faker.phone_number(),
   }
 
 
@@ -69,6 +73,10 @@ def test_reset_password_success_integration(
   test_user = User(
     email=user_data["email"],
     password=hashed_pw,
+    first_name=user_data["first_name"],
+    last_name=user_data["last_name"],
+    address=user_data["address"],
+    phone_number=user_data["phone_number"],
     uuid=user_data["uuid"],
   )
   db_session.add(test_user)
@@ -85,7 +93,7 @@ def test_reset_password_success_integration(
   )
   token_string = str(token_obj.encoded)
 
-  reset_token = Auth(
+  reset_token = AuthToken(
     token_hash=hash_token(token_string),
     token_type=TokenType.PASSWORD_UPDATE,
     user_id=test_user.id,
@@ -96,7 +104,7 @@ def test_reset_password_success_integration(
   db_session.add(reset_token)
   db_session.commit()
 
-  reset_payload = AuthResetPasswordSchema(
+  reset_payload = FormAuthResetPasswordSchema(
     token=token_string,
     new_password=user_data["new_password"],
     confirm_password=user_data["confirm_password"],
@@ -121,7 +129,7 @@ def test_reset_password_invalid_token_integration(
   # Arrange
   user_data = sample_user_data(db_session, faker)
 
-  reset_payload = AuthResetPasswordSchema(
+  reset_payload = FormAuthResetPasswordSchema(
     token=user_data["invalid_token"],
     new_password=user_data["new_password"],
     confirm_password=user_data["confirm_password"],
@@ -140,6 +148,10 @@ def test_reset_password_expired_token_integration(
   test_user = User(
     email=user_data["email"],
     password=PasswordService().password_hash(user_data["new_password"]),
+    first_name=user_data["first_name"],
+    last_name=user_data["last_name"],
+    address=user_data["address"],
+    phone_number=user_data["phone_number"],
     uuid=user_data["uuid"],
   )
   db_session.add(test_user)
@@ -152,7 +164,7 @@ def test_reset_password_expired_token_integration(
   )
   token_string = str(token_obj.encoded)
 
-  reset_token = Auth(
+  reset_token = AuthToken(
     token_hash=hash_token(token_string),
     token_type=TokenType.PASSWORD_UPDATE,
     user_id=test_user.id,
@@ -163,7 +175,7 @@ def test_reset_password_expired_token_integration(
   db_session.add(reset_token)
   db_session.commit()
 
-  reset_payload = AuthResetPasswordSchema(
+  reset_payload = FormAuthResetPasswordSchema(
     token=token_string,
     new_password=user_data["new_password"],
     confirm_password=user_data["confirm_password"],

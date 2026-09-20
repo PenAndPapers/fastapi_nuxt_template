@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.password.service import PasswordService
 from api.modules.auth.repository import AuthRepository, DeviceRepository
-from api.modules.auth.schema import AuthLoginSchema, SessionToken
+from api.modules.auth.schema import FormAuthLoginSchema, SessionTokenResponseSchema
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
 from api.modules.user.repository import UserRepository, UserRoleRepository
@@ -86,13 +86,13 @@ def test_login_success_integration(
   db_session.add(test_user)
   db_session.commit()
 
-  login_data = AuthLoginSchema(email=data["email"], password=password)
+  login_data = FormAuthLoginSchema(email=data["email"], password=password)
 
   # Act
   result = auth_service.login(login_data)
 
   # Assert
-  assert isinstance(result, SessionToken)
+  assert isinstance(result, SessionTokenResponseSchema)
   assert result.access_token is not None
   assert result.refresh_token is not None
   assert result.access_exp > 0
@@ -119,7 +119,7 @@ def test_login_failed_invalid_password_integration(
   db_session.add(test_user)
   db_session.commit()
 
-  login_data = AuthLoginSchema(email=data["email"], password=data["invalid_password"])
+  login_data = FormAuthLoginSchema(email=data["email"], password=data["invalid_password"])
 
   # Act & Assert
   from api.modules.auth.exception import InvalidCredentialsError
@@ -148,7 +148,7 @@ def test_login_failed_user_not_found_integration(
   db_session.add(test_user)
   db_session.commit()
 
-  login_data = AuthLoginSchema(email=data["invalid_email"], password=data["password"])
+  login_data = FormAuthLoginSchema(email=data["invalid_email"], password=data["password"])
 
   # Act & Assert
   from api.modules.auth.exception import InvalidCredentialsError

@@ -12,14 +12,14 @@ from .jwt.service import JwtService
 from .password.service import PasswordService
 from .repository import AuthRepository, DeviceRepository
 from .schema import (
-  AuthForgetPasswordSchema,
-  AuthLoginSchema,
-  AuthRegisterSchema,
-  AuthResetPasswordSchema,
-  DeviceSchema,
-  JwtPayload,
-  SessionToken,
-  TokenSchema,
+  FormAuthForgetPasswordSchema,
+  FormAuthLoginSchema,
+  FormAuthRegisterSchema,
+  FormAuthResetPasswordSchema,
+  FormDeviceSchema,
+  JwtFormSchema,
+  SessionTokenResponseSchema,
+  TokenFormSchema,
   TokenType,
 )
 
@@ -47,7 +47,7 @@ class AuthService:
     self.jwt_service = jwt_service
     self.password_service = password_service
 
-  def register(self, user: AuthRegisterSchema) -> User:
+  def register(self, user: FormAuthRegisterSchema) -> User:
     # TODO:
     # - rate limiting.
     # - sending verification emails.
@@ -67,7 +67,7 @@ class AuthService:
 
     return db_user
 
-  def login(self, user: AuthLoginSchema) -> SessionToken:
+  def login(self, user: FormAuthLoginSchema) -> SessionTokenResponseSchema:
     # TODO:
     # - store token in database.
     # - rate limiting.
@@ -88,14 +88,14 @@ class AuthService:
     access_token = self.jwt_service.create_token(TokenType.ACCESS, db_user.uuid, family_id)
     refresh_token = self.jwt_service.create_token(TokenType.REFRESH, db_user.uuid, family_id)
 
-    return SessionToken(
+    return SessionTokenResponseSchema(
       access_token=str(access_token.encoded),
       access_exp=access_token.exp,
       refresh_token=str(refresh_token.encoded),
       refresh_exp=refresh_token.exp,
     )
 
-  def forget_password(self, user: AuthForgetPasswordSchema) -> bool:
+  def forget_password(self, user: FormAuthForgetPasswordSchema) -> bool:
     # TODO:
     # - rate limiting.
     # - send password reset link to user's email.
@@ -121,7 +121,7 @@ class AuthService:
     logger.warning(f"forget_password_token: {forget_password_token.encoded}")
     logger.warning(f"forget_password_token_hash: {forget_password_token_hash}")
 
-    device_to_store = DeviceSchema(
+    device_to_store = FormDeviceSchema(
       client_device_id=device.client_device_id,
       device_type=device.device_type,
       os=device.os,
@@ -138,7 +138,7 @@ class AuthService:
     )
     self.db.flush()
 
-    token_to_store = TokenSchema(
+    token_to_store = TokenFormSchema(
       token_hash=forget_password_token_hash,
       token_type=TokenType.PASSWORD_UPDATE,
       expires_at=forget_password_token.exp,
@@ -159,7 +159,7 @@ class AuthService:
       self.db.rollback()
       raise e
 
-  def reset_password(self, payload: AuthResetPasswordSchema) -> bool:
+  def reset_password(self, payload: FormAuthResetPasswordSchema) -> bool:
     # TODO:
     # - rate limiting for IP and account based
     # - send password reset success message to user's email.
@@ -197,7 +197,7 @@ class AuthService:
       raise JwtInvalidTokenError("Token is invalid or expired")
 
     # Verify decoded password reset token if it matches the token attributes in database
-    formatted_token = JwtPayload.model_validate(decoded_token, from_attributes=True)
+    formatted_token = JwtFormSchema.model_validate(decoded_token, from_attributes=True)
     db_user = self.user_repository.get_user_by_uuid(formatted_token.sub)
 
     if not db_user:

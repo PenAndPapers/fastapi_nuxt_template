@@ -5,21 +5,20 @@ from core.schema import GenericResponseMessage
 
 from .dependency import AuthServiceDep
 from .schema import (
-  AuthForgetPasswordSchema,
-  AuthLoginSchema,
-  AuthRegisterSchema,
-  AuthResetPasswordSchema,
-  JwtPayload,
-  SessionToken,
-  SigningKeyResponse,
-  TokenType,
+  FormAuthForgetPasswordSchema,
+  FormAuthLoginSchema,
+  FormAuthRegisterSchema,
+  FormAuthResetPasswordSchema,
+  SessionTokenResponseSchema,
 )
 
 router = APIRouter()
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, summary="Register a new user")
-def register(user: AuthRegisterSchema, auth_service: AuthServiceDep) -> UserCreateResponseSchema:
+def register(
+  user: FormAuthRegisterSchema, auth_service: AuthServiceDep
+) -> UserCreateResponseSchema:
   """
   Register a new user.
 
@@ -32,7 +31,7 @@ def register(user: AuthRegisterSchema, auth_service: AuthServiceDep) -> UserCrea
 
 
 @router.post("/login", status_code=status.HTTP_200_OK, summary="Login user")
-def login(user: AuthLoginSchema, auth_service: AuthServiceDep) -> SessionToken:
+def login(user: FormAuthLoginSchema, auth_service: AuthServiceDep) -> SessionTokenResponseSchema:
   # TODO: Add user login logic
   # This endpoint should handle user login, including validating input, authenticating user
   # and returning token.
@@ -67,7 +66,7 @@ def logout() -> dict[str, str]:
 
 @router.post("/forget-password", status_code=status.HTTP_200_OK, summary="Forget password for user")
 def forget_password(
-  user: AuthForgetPasswordSchema, auth_service: AuthServiceDep
+  user: FormAuthForgetPasswordSchema, auth_service: AuthServiceDep
 ) -> GenericResponseMessage:
   auth_service.forget_password(user)
 
@@ -78,7 +77,7 @@ def forget_password(
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK, summary="Reset password for user")
 def reset_password(
-  payload: AuthResetPasswordSchema, auth_service: AuthServiceDep
+  payload: FormAuthResetPasswordSchema, auth_service: AuthServiceDep
 ) -> GenericResponseMessage:
   auth_service.reset_password(payload)
 
@@ -91,63 +90,3 @@ def verify_email() -> dict[str, str]:
   # This endpoint should handle user email verification, including validating input,
   # updating user's email status and returning success message.
   return {"message": "verify email endpoint"}
-
-
-@router.get("/signing-key", summary="Get signing key")
-def get_signing_key(auth_service: AuthServiceDep) -> SigningKeyResponse:
-  payload = JwtPayload(
-    token_type=TokenType.ACCESS,
-    exp=1791524531,
-    nbf=1788932531,
-    iat=1788932531,
-    iss="http://localhost:8000",
-    aud="http://localhost:3000",
-    sub="a8s9675d98g76as78dgas8",
-    jti="a897s6d6h7986asdfa7s8d",
-    family_id="a8967sbhdf67asd6f978a6s5dg",
-  )
-
-  # Encode payload into a JWT string using private key
-  token = auth_service.jwt_service.encode(payload)
-
-  # Decode and verify the JWT string using public key
-  decoded = auth_service.jwt_service.decode(token, audience=payload.aud, issuer=payload.iss)
-
-  return SigningKeyResponse(token=token, decoded=JwtPayload(**decoded))
-
-
-@router.get("/jwt", summary="Get JWT token")
-def get_jwt_token(auth_service: AuthServiceDep) -> SessionToken:
-  payload = {"sub": "user_uuid_a8s9675d98g76as78dgas8"}  # user uuid
-  family_id = auth_service.jwt_service.get_token_jti()  # family identifier
-
-  # Generate access token
-  access_token_claims = auth_service.jwt_service.get_default_jwt_claims(TokenType.ACCESS)
-  access_token_claims["token_type"] = TokenType.ACCESS.value
-  access_token_claims["sub"] = payload["sub"]
-  access_token_claims["jti"] = auth_service.jwt_service.get_token_jti()
-  access_token_claims["family_id"] = family_id
-
-  # Generate refresh token
-  refresh_token_claims = auth_service.jwt_service.get_default_jwt_claims(TokenType.REFRESH)
-  refresh_token_claims["token_type"] = TokenType.REFRESH.value
-  refresh_token_claims["sub"] = payload["sub"]
-  refresh_token_claims["jti"] = auth_service.jwt_service.get_token_jti()
-  refresh_token_claims["family_id"] = family_id
-
-  access_token = auth_service.jwt_service.encode(JwtPayload(**access_token_claims))
-  refresh_token = auth_service.jwt_service.encode(JwtPayload(**refresh_token_claims))
-
-  return {
-    "access_token": access_token,
-    "exp": access_token_claims["exp"],
-    "refresh_token": refresh_token,
-    "refresh_exp": refresh_token_claims["exp"],
-  }
-
-
-@router.post("/hash-password", summary="Hash password")
-def hash_password(auth_service: AuthServiceDep) -> dict[str, str | bool]:
-  hashed_password = auth_service.password_service.password_hash("3x@mPle@t35t")
-  verify_password = auth_service.password_service.verify_password("3x@mPle@t35t", hashed_password)
-  return {"hashed_password": hashed_password, "is_match": verify_password}

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.password.service import PasswordService
 from api.modules.auth.repository import AuthRepository, DeviceRepository
-from api.modules.auth.schema import AuthForgetPasswordSchema, DeviceSchema, TokenType
+from api.modules.auth.schema import FormAuthForgetPasswordSchema, FormDeviceSchema, TokenType
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
 from api.modules.user.repository import UserRepository, UserRoleRepository
@@ -44,14 +44,18 @@ def auth_service(
 
 def sample_device_data(
   db_session: Session, faker: Faker
-) -> dict[str, str | float | int | DeviceSchema]:
+) -> dict[str, str | float | int | FormDeviceSchema]:
   session_id = hex(id(db_session))
 
   return {
     "email": f"test_integration_forgot_password_{session_id}_{faker.email()}",
     "password": faker.password(),
     "uuid": faker.uuid4(),
-    "device": DeviceSchema(
+    "first_name": faker.first_name(),
+    "last_name": faker.last_name(),
+    "address": faker.address(),
+    "phone_number": faker.phone_number(),
+    "device": FormDeviceSchema(
       client_device_id=faker.uuid4(),
       device_type=faker.word(),
       os=faker.word(),
@@ -72,12 +76,16 @@ def test_forget_password_success_integration(
   test_user = User(
     email=data["email"],
     password=hashed_pw,
+    first_name=data["first_name"],
+    last_name=data["last_name"],
+    address=data["address"],
+    phone_number=data["phone_number"],
     uuid=data["uuid"],
   )
   db_session.add(test_user)
   db_session.commit()
 
-  forget_data = AuthForgetPasswordSchema(email=data["email"], device=data["device"])
+  forget_data = FormAuthForgetPasswordSchema(email=data["email"], device=data["device"])
 
   # Act
   result = auth_service.forget_password(forget_data)
@@ -89,9 +97,9 @@ def test_forget_password_success_integration(
 
   AuthRepository(db_session)
   # Since we don't have a get_token method, we check if any token exists for this user
-  from api.modules.auth.model import Auth
+  from api.modules.auth.model import AuthToken
 
-  token = db_session.query(Auth).filter_by(user_id=test_user.id).first()
+  token = db_session.query(AuthToken).filter_by(user_id=test_user.id).first()
   assert token is not None
   assert token.token_type == TokenType.PASSWORD_UPDATE.value
 
@@ -101,7 +109,7 @@ def test_forget_password_user_not_found_integration(
 ) -> None:
   data = sample_device_data(db_session, faker)
   # Use a different email that isn't in the DB
-  forget_data = AuthForgetPasswordSchema(
+  forget_data = FormAuthForgetPasswordSchema(
     email=f"nonexistent_{faker.email()}", device=data["device"]
   )
 

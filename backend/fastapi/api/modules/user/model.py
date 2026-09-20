@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.model import AppBaseModel
 
 if TYPE_CHECKING:
-  from api.modules.auth.model import Auth, Device, OneTimePin
+  from api.modules.auth.model import AuthToken, Device, OneTimePin
 
 
 class User(AppBaseModel):
@@ -33,8 +33,10 @@ class User(AppBaseModel):
     secondary="user_roles", back_populates="users", lazy="selectin"
   )
 
-  # One-to-Many relationships to Auth, Device, and OneTimePin
-  tokens: Mapped[list["Auth"]] = relationship("Auth", back_populates="user", lazy="selectin")
+  # One-to-Many relationships to AuthToken, Device, and OneTimePin
+  tokens: Mapped[list["AuthToken"]] = relationship(
+    "AuthToken", back_populates="user", lazy="selectin"
+  )
   devices: Mapped[list["Device"]] = relationship("Device", back_populates="user", lazy="selectin")
   one_time_pins: Mapped[list["OneTimePin"]] = relationship(
     "OneTimePin", back_populates="user", lazy="selectin"

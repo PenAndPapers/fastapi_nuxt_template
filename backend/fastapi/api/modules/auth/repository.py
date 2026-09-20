@@ -6,32 +6,32 @@ from core.database import DatabaseDep
 from core.exception import DBExceptionError
 from core.schema import NonEmptyStr, PositiveInt
 
-from .model import Auth, Device
-from .schema import DeviceSchema, TokenSchema, TokenType
+from .model import AuthToken, Device
+from .schema import FormDeviceSchema, TokenFormSchema, TokenType
 
 
 class AuthRepository:
   def __init__(self, db: DatabaseDep) -> None:
     self.db = db
-    self.model = Auth
+    self.model = AuthToken
 
-  def store_token(self, token: TokenSchema) -> Auth:
-    new_token = Auth(**token.model_dump())
+  def store_token(self, token: TokenFormSchema) -> AuthToken:
+    new_token = AuthToken(**token.model_dump())
     self.db.add(new_token)
 
     return new_token
 
-  def get_token_by_hash(self, token_hash: NonEmptyStr) -> Auth | None:
+  def get_token_by_hash(self, token_hash: NonEmptyStr) -> AuthToken | None:
     query = select(self.model).where(self.model.token_hash == token_hash)
     return self.db.execute(query).scalar_one_or_none()
 
-  def get_token_by_id(self, token_id: PositiveInt) -> Auth | None:
+  def get_token_by_id(self, token_id: PositiveInt) -> AuthToken | None:
     query = select(self.model).where(self.model.id == token_id)
     return self.db.execute(query).scalar_one_or_none()
 
   def get_user_active_tokens_by_type(
     self, user_id: PositiveInt, token_type: TokenType
-  ) -> list[Auth]:
+  ) -> list[AuthToken]:
     query = select(self.model).where(
       (self.model.token_type == token_type)
       & (self.model.user_id == user_id)
@@ -63,7 +63,7 @@ class DeviceRepository:
     self.db = db
     self.model = Device
 
-  def store_device(self, device: DeviceSchema, user_id: PositiveInt) -> Device:
+  def store_device(self, device: FormDeviceSchema, user_id: PositiveInt) -> Device:
     new_device = Device(**device.model_dump(), user_id=user_id)
     self.db.add(new_device)
 

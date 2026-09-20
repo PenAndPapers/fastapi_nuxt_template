@@ -12,18 +12,17 @@ if TYPE_CHECKING:
   from api.modules.user.model import User
 
 
-class Auth(AppBaseModel):
+class AuthToken(AppBaseModel):
   """User's authentication tokens."""
 
   __tablename__ = "auth_tokens"
   __table_args__: ClassVar[dict[str, str]] = {"comment": "User's authentication tokens."}
 
-  # Store hashed tokens (e.g., SHA-256 of the actual refresh token)
+  # Store hashed tokens (e.g., SHA-256 of the actual JWT token)
   token_hash: Mapped[str] = mapped_column(String(1000), unique=True, index=True)
   token_type: Mapped[TokenType] = mapped_column(Enum(TokenType), nullable=False)
-  expires_at: Mapped[datetime] = mapped_column(index=True)
-  is_revoked: Mapped[bool] = mapped_column(default=False, index=True)
   family_id: Mapped[str] = mapped_column(String(255), nullable=False)
+  is_revoked: Mapped[bool] = mapped_column(default=False, index=True)
 
   user_id: Mapped[int] = mapped_column(
     BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True
@@ -31,6 +30,8 @@ class Auth(AppBaseModel):
   device_id: Mapped[int | None] = mapped_column(
     BigInteger, ForeignKey("devices.id", ondelete="SET NULL"), nullable=True
   )
+
+  expires_at: Mapped[datetime] = mapped_column(index=True)
 
   user: Mapped["User"] = relationship("User", back_populates="tokens")
   device: Mapped[Optional["Device"]] = relationship("Device", back_populates="tokens")
@@ -86,4 +87,4 @@ class Device(AppBaseModel):
   )
 
   user: Mapped["User"] = relationship("User", back_populates="devices")
-  tokens: Mapped[list["Auth"]] = relationship("Auth", back_populates="device")
+  tokens: Mapped[list["AuthToken"]] = relationship("AuthToken", back_populates="device")

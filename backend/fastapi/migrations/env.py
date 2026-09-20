@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from api.modules.auth.model import Auth, Device, OneTimePin  # noqa: F401
+from api.modules.auth.model import AuthToken, Device, OneTimePin  # noqa: F401
 from api.modules.user.model import Permission, Role, RolePermission, User, UserRole  # noqa: F401
 from core.config import get_settings
 from core.database import Base

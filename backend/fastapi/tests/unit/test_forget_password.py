@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from faker import Faker
 
-from api.modules.auth.schema import AuthForgetPasswordSchema, DeviceSchema
+from api.modules.auth.schema import FormAuthForgetPasswordSchema, FormDeviceSchema
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
 
@@ -77,7 +77,7 @@ def sample_forget_password_data(faker: Faker) -> dict:
     "email": faker.email(),
     "password": faker.password(),
     "uuid": faker.uuid4(),
-    "device": DeviceSchema(
+    "device": FormDeviceSchema(
       client_device_id=faker.uuid4(),
       device_type=faker.word(),
       os=faker.word(),
@@ -101,7 +101,7 @@ def test_forget_password_success(
   Test forget password success.
   """
   data = sample_forget_password_data(faker)
-  forget_data = AuthForgetPasswordSchema(email=data["email"], device=data["device"])
+  forget_data = FormAuthForgetPasswordSchema(email=data["email"], device=data["device"])
 
   mock_user = User(id=1, email=data["email"], password=data["password"], uuid=data["uuid"])
   mock_user_repo.get_user_by_email.return_value = mock_user
@@ -128,7 +128,7 @@ def test_forget_password_user_not_found(
   faker: Faker,
 ) -> None:
   data = sample_forget_password_data(faker)
-  forget_data = AuthForgetPasswordSchema(email=data["email"], device=data["device"])
+  forget_data = FormAuthForgetPasswordSchema(email=data["email"], device=data["device"])
 
   mock_user_repo.get_user_by_email.return_value = None
 
