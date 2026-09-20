@@ -8,31 +8,6 @@ from api.modules.user.model import User
 from api.modules.user.schema import EnumUserRole, UserCreateSchema
 
 
-@pytest.fixture()
-def mock_db_session() -> MagicMock:
-  return MagicMock()
-
-
-@pytest.fixture
-def mock_auth_repo() -> MagicMock:
-  return MagicMock()
-
-
-@pytest.fixture
-def mock_device_repo() -> MagicMock:
-  return MagicMock()
-
-
-@pytest.fixture
-def mock_user_repo() -> MagicMock:
-  return MagicMock()
-
-
-@pytest.fixture
-def mock_user_role_repo() -> MagicMock:
-  return MagicMock()
-
-
 @pytest.fixture
 def mock_jwt_service() -> MagicMock:
   return MagicMock()
@@ -40,10 +15,7 @@ def mock_jwt_service() -> MagicMock:
 
 @pytest.fixture
 def mock_password_service() -> MagicMock:
-  # We use a real PasswordService or a mock, but for unit tests, a mock is faster
-  service = MagicMock()
-  service.password_hash.return_value = "hashed_password_123"
-  return service
+  return MagicMock()
 
 
 @pytest.fixture
@@ -80,12 +52,12 @@ def sample_data(faker: Faker) -> dict:
   }
 
 
-def test_create_user_success(
-  auth_service: AuthService,
-  mock_device_repo: MagicMock,
-  mock_password_service: MagicMock,
-  mock_user_repo: MagicMock,
-  mock_user_role_repo: MagicMock,
+def test_regsiter_success(
+  unit_mock_auth_service: AuthService,
+  unit_mock_device_repo: MagicMock,
+  unit_mock_password_service: MagicMock,
+  unit_mock_user_repo: MagicMock,
+  unit_mock_user_role_repo: MagicMock,
   faker: Faker,
 ) -> None:
   # Generate sample data
@@ -103,7 +75,7 @@ def test_create_user_success(
   )
 
   # Mock user repository create_user method return value
-  mock_user_repo.create_user.return_value = User(
+  unit_mock_user_repo.create_user.return_value = User(
     id=1,
     uuid=data["uuid"],
     email=data["email"],
@@ -115,17 +87,17 @@ def test_create_user_success(
   )
 
   # Call the service method
-  result = auth_service.register(user_data)
+  result = unit_mock_auth_service.register(user_data)
 
   # Assert
   # Check password was hashed
-  mock_password_service.password_hash.assert_called_once_with(data["password"])
+  unit_mock_password_service.password_hash.assert_called_once_with(data["password"])
 
   # Check user was created in repository
-  mock_user_repo.create_user.assert_called_once()
+  unit_mock_user_repo.create_user.assert_called_once()
 
   # Check role was assigned
-  mock_user_role_repo.assign_role.assert_called_once_with(1, data["role"])
+  unit_mock_user_role_repo.assign_role.assert_called_once_with(1, data["role"])
 
   # Check return values
   assert result.id == 1

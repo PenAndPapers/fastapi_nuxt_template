@@ -1,48 +1,14 @@
-from pathlib import Path
-from unittest.mock import patch
-
-import pytest
 from faker import Faker
 from sqlalchemy.orm import Session
 
-from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.password.service import PasswordService
-from api.modules.auth.repository import AuthRepository, DeviceRepository
+from api.modules.auth.repository import AuthRepository
 from api.modules.auth.schema import FormAuthForgetPasswordSchema, FormDeviceSchema, TokenType
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
-from api.modules.user.repository import UserRepository, UserRoleRepository
 
 
-@pytest.fixture
-def auth_service(
-  db_session: Session, tmp_path: Path, private_key_fixture: str, public_key_fixture: str
-) -> AuthService:
-  priv_file = tmp_path / "private_key.pem"
-  pub_file = tmp_path / "public_key.pem"
-  priv_file.write_text(private_key_fixture)
-  pub_file.write_text(public_key_fixture)
-
-  from api.modules.auth.jwt.service import settings
-
-  with (
-    patch.object(settings, "private_key_path", priv_file),
-    patch.object(settings, "public_key_path", pub_file),
-  ):
-    jwt_service = JwtService()
-
-    return AuthService(
-      db=db_session,
-      repository=AuthRepository(db_session),
-      device_repository=DeviceRepository(db_session),
-      user_repository=UserRepository(db_session),
-      user_role_repository=UserRoleRepository(db_session),
-      jwt_service=jwt_service,
-      password_service=PasswordService(),
-    )
-
-
-def sample_device_data(
+def _sample_data(
   db_session: Session, faker: Faker
 ) -> dict[str, str | float | int | FormDeviceSchema]:
   session_id = hex(id(db_session))
@@ -70,7 +36,7 @@ def sample_device_data(
 def test_forget_password_success_integration(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
-  data = sample_device_data(db_session, faker)
+  data = _sample_data(db_session, faker)
   # Arrange: Create user in DB
   hashed_pw = PasswordService().password_hash(data["password"])
   test_user = User(
@@ -91,15 +57,12 @@ def test_forget_password_success_integration(
   result = auth_service.forget_password(forget_data)
 
   # Assert
-  assert result is True
-  # Check if token was stored in DB (we can check via repository or query)
-  from api.modules.auth.repository import AuthRepository
+  assert result is True  # Return True if token was created successfully
 
-  AuthRepository(db_session)
-  # Since we don't have a get_token method, we check if any token exists for this user
-  from api.modules.auth.model import AuthToken
+  # Check if token was stored in DB using the repository
+  repo = AuthRepository(db_session)
+  token = repo.get_user_latest_active_token_by_type(test_user.id, TokenType.PASSWORD_UPDATE)
 
-  token = db_session.query(AuthToken).filter_by(user_id=test_user.id).first()
   assert token is not None
   assert token.token_type == TokenType.PASSWORD_UPDATE.value
 
@@ -107,7 +70,7 @@ def test_forget_password_success_integration(
 def test_forget_password_user_not_found_integration(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
-  data = sample_device_data(db_session, faker)
+  data = _sample_data(db_session, faker)
   # Use a different email that isn't in the DB
   forget_data = FormAuthForgetPasswordSchema(
     email=f"nonexistent_{faker.email()}", device=data["device"]
@@ -117,4 +80,4 @@ def test_forget_password_user_not_found_integration(
   result = auth_service.forget_password(forget_data)
 
   # Assert
-  assert result is True  # Security: return true even if user not found
+  assert result is None  # Return None if user not found

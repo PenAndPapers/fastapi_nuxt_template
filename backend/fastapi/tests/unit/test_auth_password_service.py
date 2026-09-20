@@ -1,4 +1,5 @@
 import pytest
+from faker import Faker
 
 from api.modules.auth.password.service import PasswordService
 
@@ -8,8 +9,8 @@ def password_service() -> PasswordService:
   return PasswordService()
 
 
-def test_password_hash_returns_string(password_service: PasswordService) -> None:
-  raw_password = "my_secure_password123"  # noqa: S105
+def test_password_hash_returns_string(password_service: PasswordService, faker: Faker) -> None:
+  raw_password = faker.password()
   hashed = password_service.password_hash(raw_password)
 
   assert isinstance(hashed, str)
@@ -17,8 +18,8 @@ def test_password_hash_returns_string(password_service: PasswordService) -> None
   assert len(hashed) > 0
 
 
-def test_verify_password_success(password_service: PasswordService) -> None:
-  raw_password = "my_secure_password123"  # noqa: S105
+def test_verify_password_success(password_service: PasswordService, faker: Faker) -> None:
+  raw_password = faker.password()
   hashed = password_service.password_hash(raw_password)
 
   is_valid = password_service.verify_password(raw_password, hashed)
@@ -26,9 +27,9 @@ def test_verify_password_success(password_service: PasswordService) -> None:
   assert is_valid is True
 
 
-def test_verify_password_failure(password_service: PasswordService) -> None:
-  raw_password = "my_secure_password123"  # noqa: S105
-  wrong_password = "wrong_password123"  # noqa: S105
+def test_verify_password_failure(password_service: PasswordService, faker: Faker) -> None:
+  raw_password = faker.password()
+  wrong_password = faker.password()
   hashed = password_service.password_hash(raw_password)
 
   is_valid = password_service.verify_password(wrong_password, hashed)

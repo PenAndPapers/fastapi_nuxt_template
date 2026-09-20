@@ -11,8 +11,9 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-ENV UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy
+ENV UV_COMPILE_BYTECODE=0 \
+    UV_LINK_MODE=copy \
+    PYTHONDONTWRITEBYTECODE=1
 
 # Copy dependency definition files
 COPY backend/fastapi/pyproject.toml backend/fastapi/uv.lock ./

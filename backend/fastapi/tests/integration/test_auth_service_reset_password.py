@@ -1,52 +1,19 @@
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from faker import Faker
 from sqlalchemy.orm import Session
 
 from api.modules.auth.exception import JwtInvalidTokenError
-from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.model import AuthToken
 from api.modules.auth.password.service import PasswordService
-from api.modules.auth.repository import AuthRepository, DeviceRepository
 from api.modules.auth.schema import FormAuthResetPasswordSchema, TokenType
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
-from api.modules.user.repository import UserRepository, UserRoleRepository
 from utils.hash import hash_token
 
 
-@pytest.fixture
-def auth_service(
-  db_session: Session, tmp_path: Path, private_key_fixture: str, public_key_fixture: str
-) -> AuthService:
-  priv_file = tmp_path / "private_key.pem"
-  pub_file = tmp_path / "public_key.pem"
-  priv_file.write_text(private_key_fixture)
-  pub_file.write_text(public_key_fixture)
-
-  from api.modules.auth.jwt.service import settings
-
-  with (
-    patch.object(settings, "private_key_path", priv_file),
-    patch.object(settings, "public_key_path", pub_file),
-  ):
-    jwt_service = JwtService()
-
-    return AuthService(
-      db=db_session,
-      repository=AuthRepository(db_session),
-      device_repository=DeviceRepository(db_session),
-      user_repository=UserRepository(db_session),
-      user_role_repository=UserRoleRepository(db_session),
-      jwt_service=jwt_service,
-      password_service=PasswordService(),
-    )
-
-
-def sample_user_data(db_session: Session, faker: Faker) -> dict:
+def _sample_data(db_session: Session, faker: Faker) -> dict:
   session_id = hex(id(db_session))
   return {
     "email": f"test_integration_reset_password_{session_id}_{faker.email()}",
@@ -64,23 +31,47 @@ def sample_user_data(db_session: Session, faker: Faker) -> dict:
   }
 
 
+def _create_db_user(data: dict[str, str], hashed_pw: str, db_session: Session) -> User:
+  test_user = User(
+    email=data["email"],
+    password=hashed_pw,
+    uuid=data["uuid"],
+    first_name=data["first_name"],
+    last_name=data["last_name"],
+    address=data["address"],
+    phone_number=data["phone_number"],
+  )
+  db_session.add(test_user)
+  db_session.commit()
+
+  return test_user
+
+
+def _create_db_reset_token(
+  hashed_token: str, data: dict[str, str], user: User, expires_at: datetime, db_session: Session
+) -> AuthToken:
+  reset_token = AuthToken(
+    token_hash=hashed_token,
+    token_type=TokenType.PASSWORD_UPDATE,
+    user_id=user.id,
+    expires_at=expires_at,
+    family_id=data["family_id"],
+    is_revoked=False,
+  )
+  db_session.add(reset_token)
+  db_session.commit()
+
+  return reset_token
+
+
 def test_reset_password_success_integration(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
   # Arrange
-  user_data = sample_user_data(db_session, faker)
+  user_data = _sample_data(db_session, faker)
   hashed_pw = PasswordService().password_hash(user_data["new_password"])
-  test_user = User(
-    email=user_data["email"],
-    password=hashed_pw,
-    first_name=user_data["first_name"],
-    last_name=user_data["last_name"],
-    address=user_data["address"],
-    phone_number=user_data["phone_number"],
-    uuid=user_data["uuid"],
-  )
-  db_session.add(test_user)
-  db_session.commit()
+
+  test_user = _create_db_user(user_data, hashed_pw, db_session)
 
   # We need a token that is signed with the SAME keys as the auth_service
   # The auth_service fixture creates its own JwtService with tmp keys.
@@ -93,16 +84,13 @@ def test_reset_password_success_integration(
   )
   token_string = str(token_obj.encoded)
 
-  reset_token = AuthToken(
-    token_hash=hash_token(token_string),
-    token_type=TokenType.PASSWORD_UPDATE,
-    user_id=test_user.id,
+  reset_token = _create_db_reset_token(
+    hash_token(token_string),
+    user_data,
+    test_user,
     expires_at=datetime.now(UTC) + timedelta(hours=1),
-    family_id=user_data["family_id"],
-    is_revoked=False,
+    db_session=db_session,
   )
-  db_session.add(reset_token)
-  db_session.commit()
 
   reset_payload = FormAuthResetPasswordSchema(
     token=token_string,
@@ -127,7 +115,7 @@ def test_reset_password_invalid_token_integration(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
   # Arrange
-  user_data = sample_user_data(db_session, faker)
+  user_data = _sample_data(db_session, faker)
 
   reset_payload = FormAuthResetPasswordSchema(
     token=user_data["invalid_token"],
@@ -144,18 +132,11 @@ def test_reset_password_expired_token_integration(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
   # Arrange
-  user_data = sample_user_data(db_session, faker)
-  test_user = User(
-    email=user_data["email"],
-    password=PasswordService().password_hash(user_data["new_password"]),
-    first_name=user_data["first_name"],
-    last_name=user_data["last_name"],
-    address=user_data["address"],
-    phone_number=user_data["phone_number"],
-    uuid=user_data["uuid"],
-  )
-  db_session.add(test_user)
-  db_session.commit()
+  user_data = _sample_data(db_session, faker)
+  hashed_pw = PasswordService().password_hash(user_data["new_password"])
+
+  # Create the user
+  test_user = _create_db_user(user_data, hashed_pw, db_session)
 
   # Generate a real token but set it as expired in the DB
   jwt_service = auth_service.jwt_service
@@ -164,16 +145,13 @@ def test_reset_password_expired_token_integration(
   )
   token_string = str(token_obj.encoded)
 
-  reset_token = AuthToken(
-    token_hash=hash_token(token_string),
-    token_type=TokenType.PASSWORD_UPDATE,
-    user_id=test_user.id,
+  _create_db_reset_token(
+    hash_token(token_string),
+    user_data,
+    test_user,
     expires_at=datetime.now(UTC) - timedelta(hours=1),
-    family_id=user_data["family_id"],
-    is_revoked=False,
+    db_session=db_session,
   )
-  db_session.add(reset_token)
-  db_session.commit()
 
   reset_payload = FormAuthResetPasswordSchema(
     token=token_string,
