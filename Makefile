@@ -27,21 +27,19 @@ NODE_MAJOR_REQUIRED := 22
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-        frontend-check frontend-install frontend-prepare frontend-dev \
-        frontend-build frontend-preview frontend-generate \
-        frontend-typecheck frontend-lint frontend-lint-fix \
-        frontend-format frontend-format-check frontend-clean \
-        frontend-up frontend-down frontend-shell \
-        backend-install backend-update-deps backend-lint backend-lint-fix \
-        backend-test backend-test-unit backend-test-integration backend-test-e2e \
-        backend-migrate-create backend-migrate-upgrade backend-migrate-downgrade \
-        backend-migrate-history backend-migrate-current backend-migrate-pending \
-        backend-clean backend-rotate-signing-key backend-generate-signing-key \
-        setup-frontend setup-backend setup-project \
+        nuxt4-check nuxt4-install nuxt4-prepare nuxt4-dev \
+        nuxt4-build nuxt4-preview nuxt4-generate \
+        nuxt4-typecheck nuxt4-lint nuxt4-lint-fix \
+        nuxt4-format nuxt4-format-check nuxt4-clean \
+        nuxt4-up nuxt4-down nuxt4-shell \
+        fastapi-install fastapi-update-deps fastapi-lint fastapi-lint-fix \
+        fastapi-test fastapi-test-unit fastapi-test-integration fastapi-test-e2e \
+        fastapi-migrate-create fastapi-migrate-upgrade fastapi-migrate-downgrade \
+        fastapi-migrate-history fastapi-migrate-current fastapi-migrate-pending \
+        fastapi-clean fastapi-rotate-signing-key fastapi-generate-signing-key \
+        fullstack-test fullstack-shell fullstack-clean \
         docker-up docker-up-logs docker-down docker-down-volumes docker-rebuild docker-restart docker-logs docker-ps \
-        docker-health docker-clean \
-        fullstack-test fullstack-shell \
-        dev-up clean-project
+        docker-health docker-clean
 
 # --------------------------------------------------------------------
 # Help
@@ -64,125 +62,125 @@ help: ## Show this help message
 # --------------------------------------------------------------------
 # Frontend commands (delegated to frontend/nuxt4/Makefile)
 # --------------------------------------------------------------------
-frontend-check: ## Verify Node 22.x LTS + pnpm are installed (fail-fast)
+nuxt4-check: ## Verify Node 22.x LTS + pnpm are installed (fail-fast)
 	@if [ ! -f $(FRONTEND_DIR)/Makefile ]; then \
 		echo "$(_ERR)❌ $(FRONTEND_DIR)/Makefile not found$(_RESET)"; \
 		exit 1; \
 	fi
 	@cd $(FRONTEND_DIR) && make check-prerequisites
 
-frontend-install: frontend-check ## Install frontend deps (skips if lockfile unchanged)
+nuxt4-install: nuxt4-check ## Install frontend deps (skips if lockfile unchanged)
 	@cd $(FRONTEND_DIR) && make install
 
-frontend-prepare: frontend-install ## Run `nuxt prepare` (generates .nuxt + types)
+nuxt4-prepare: nuxt4-install ## Run `nuxt prepare` (generates .nuxt + types)
 	@cd $(FRONTEND_DIR) && make prepare
 
-frontend-dev: frontend-prepare ## Start Nuxt 4 dev server (http://localhost:3000)
+nuxt4-dev: nuxt4-prepare ## Start Nuxt 4 dev server (http://localhost:3000)
 	@cd $(FRONTEND_DIR) && make dev
 
-frontend-generate: frontend-prepare ## Generate static site (SSG output)
+nuxt4-generate: nuxt4-prepare ## Generate static site (SSG output)
 	@cd $(FRONTEND_DIR) && make generate
 
-frontend-typecheck: frontend-prepare ## Run Nuxt type checking (vue-tsc)
+nuxt4-typecheck: nuxt4-prepare ## Run Nuxt type checking (vue-tsc)
 	@cd $(FRONTEND_DIR) && make typecheck
 
-frontend-lint: frontend-install ## Run ESLint (writes no-fix output, non-zero on lint errors)
+nuxt4-lint: nuxt4-install ## Run ESLint (writes no-fix output, non-zero on lint errors)
 	@cd $(FRONTEND_DIR) && make lint
 
-frontend-lint-fix: frontend-prepare ## Run ESLint with --fix (auto-fixable issues only)
+nuxt4-lint-fix: nuxt4-prepare ## Run ESLint with --fix (auto-fixable issues only)
 	@cd $(FRONTEND_DIR) && make lint-fix
 
-frontend-format: frontend-prepare ## Run Prettier (rewrite files in place)
+nuxt4-format: nuxt4-prepare ## Run Prettier (rewrite files in place)
 	@cd $(FRONTEND_DIR) && make format
 
-frontend-format-check: frontend-prepare ## Run Prettier in check-only mode (CI, returns non-zero on unformatted files)
+nuxt4-format-check: nuxt4-prepare ## Run Prettier in check-only mode (CI, returns non-zero on unformatted files)
 	@cd $(FRONTEND_DIR) && make format-check
 
-frontend-clean: ## Remove generated Nuxt artifacts + node_modules
-	@echo -e "$(_WARN)▶⚠️  Cleaning frontend artifacts…$(_RESET)"
+nuxt4-clean: ## Remove generated Nuxt artifacts + node_modules
+	@echo -e "$(_WARN)▶⚠️  Cleaning Nuxt 4 artifacts…$(_RESET)"
 	@cd $(FRONTEND_DIR) && make down
 
-frontend-build: frontend-prepare ## Build the frontend for production (.output/)
+nuxt4-build: nuxt4-prepare ## Build the frontend for production (.output/)
 	@cd $(FRONTEND_DIR) && make build
 
-frontend-up: ## Start frontend container
+nuxt4-up: ## Start frontend container
 	@echo "▶ Starting frontend container..."
 	@cd $(FRONTEND_DIR) && make up
 
-frontend-down: ## Stop and remove frontend container
-	@echo -e "$(_WARN)▶⚠️  Stopping and removing frontend container…$(_RESET)"
+nuxt4-down: ## Stop and remove frontend container
+	@echo -e "$(_WARN)▶⚠️  Stopping and removing Nuxt 4 container…$(_RESET)"
 	@cd $(FRONTEND_DIR) && make down
 
-frontend-preview: frontend-build ## Preview production build on http://localhost:3000
+nuxt4-preview: nuxt4-build ## Preview production build on http://localhost:3000
 	@cd $(FRONTEND_DIR) && make preview
 
-frontend-shell: ## Open shell in frontend container
+nuxt4-shell: ## Open shell in frontend container
 	@cd $(FRONTEND_DIR) && make shell
 
 # --------------------------------------------------------------------
 # Backend commands (delegated to backend/fastapi/Makefile)
 # --------------------------------------------------------------------
-backend-install:
+fastapi-install:
 	@cd $(BACKEND_DIR) && make install
 	@echo -e "$(_OK)✅ Backend deps installed."
 
-backend-update-deps:
+fastapi-update-deps:
 	@cd $(BACKEND_DIR) && make update-deps
 	@echo -e "$(_OK)✅ Backend deps updated."
 
-backend-lint:
+fastapi-lint:
 	@cd $(BACKEND_DIR) && make lint
 	@echo -e "$(_OK)✅ Backend lint completed."
 
-backend-lint-fix:
+fastapi-lint-fix:
 	@cd $(BACKEND_DIR) && make lint-fix
 	@echo -e "$(_OK)✅ Backend lint fixed."
 
-backend-migrate-create:
+fastapi-migrate-create:
 	@cd $(BACKEND_DIR) && make migrate-create
 	@echo -e "$(_OK)✅ Backend migration created."
 
-backend-migrate-upgrade:
+fastapi-migrate-upgrade:
 	@cd $(BACKEND_DIR) && make migrate-upgrade
 	@echo -e "$(_OK)✅ Backend migrations applied."
 
-backend-migrate-downgrade:
+fastapi-migrate-downgrade:
 	@cd $(BACKEND_DIR) && make migrate-downgrade
 	@echo -e "$(_OK)✅ Backend migrations rolled back."
 
-backend-migrate-history:
+fastapi-migrate-history:
 	@cd $(BACKEND_DIR) && make migrate-history
 	@echo -e "$(_OK)✅ Backend migrations history completed."
 
-backend-migrate-current:
+fastapi-migrate-current:
 	@cd $(BACKEND_DIR) && make migrate-current
 	@echo -e "$(_OK)✅ Backend current migration completed."
 
-backend-migrate-pending:
+fastapi-migrate-pending:
 	@cd $(BACKEND_DIR) && make migrate-pending
 	@echo -e "$(_OK)✅ Backend pending migrations completed."
 
-backend-test:
+fastapi-test:
 	@cd $(BACKEND_DIR) && make test
 	@echo -e "$(_OK)✅ Backend tests completed."
 
-backend-test-unit:
+fastapi-test-unit:
 	@cd $(BACKEND_DIR) && make test-unit
 	@echo -e "$(_OK)✅ Backend unit tests completed."
 
-backend-test-integration:
+fastapi-test-integration:
 	@cd $(BACKEND_DIR) && make test-integration
 	@echo -e "$(_OK)✅ Backend integration tests completed."
 
-backend-test-e2e:
+fastapi-test-e2e:
 	@cd $(BACKEND_DIR) && make test-e2e
 	@echo -e "$(_OK)✅ Backend end-to-end tests completed."
 
-backend-clean:
+fastapi-clean:	
 	@cd $(BACKEND_DIR) && make clean
 	@echo -e "$(_OK)✅ Backend artifacts cleaned."
 
-backend-generate-signing-key:
+fastapi-generate-signing-key:
 	@cd $(BACKEND_DIR) && make generate-signing-key
 	@echo -e "$(_OK)✅ Backend signing key generated."
 
