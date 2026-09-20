@@ -20,21 +20,15 @@ def auth_service(db_session: Session) -> AuthService:
   # the initialization of JwtService to avoid FileNotFoundError in CI
   with patch("pathlib.Path.read_text") as mock_read:
     mock_read.return_value = "fake-key-content"
-    auth_repo = AuthRepository(db_session)
-    device_repo = DeviceRepository(db_session)
-    user_repo = UserRepository(db_session)
-    user_role_repo = UserRoleRepository(db_session)
-    jwt_service = JwtService()
-    password_service = PasswordService()
 
     return AuthService(
       db=db_session,
-      repository=auth_repo,
-      device_repository=device_repo,
-      user_repository=user_repo,
-      user_role_repository=user_role_repo,
-      jwt_service=jwt_service,
-      password_service=password_service,
+      repository=AuthRepository(db_session),
+      device_repository=DeviceRepository(db_session),
+      user_repository=UserRepository(db_session),
+      user_role_repository=UserRoleRepository(db_session),
+      jwt_service=JwtService(),
+      password_service=PasswordService(),
     )
 
 
@@ -58,14 +52,6 @@ def test_create_user_integration_success(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
   data = sample_data(db_session, faker)
-
-  # Arrange: Ensure the role exists in DB
-  role_name = EnumUserRole.USER.value
-  role = db_session.query(Role).filter_by(name=role_name).first()
-  if not role:
-    role = Role(name=role_name, description="Test User Role")
-    db_session.add(role)
-    db_session.commit()
 
   user_data = UserCreateSchema(
     email=data["email"],
@@ -101,14 +87,6 @@ def test_create_superadmin_integration_success(
 ) -> None:
   data = sample_data(db_session, faker)
 
-  # Arrange: Ensure the role exists in DB
-  role_name = EnumUserRole.SUPER_ADMIN.value
-  role = db_session.query(Role).filter_by(name=role_name).first()
-  if not role:
-    role = Role(name=role_name, description="Test Superadmin Role")
-    db_session.add(role)
-    db_session.commit()
-
   # Arrange: Create user data
   user_data = UserCreateSchema(
     email=data["email"],
@@ -141,14 +119,6 @@ def test_duplicate_email_integration_error(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
   data = sample_data(db_session, faker)
-
-  # Arrange: Ensure the role exists in DB
-  role_name = EnumUserRole.SUPER_ADMIN.value
-  role = db_session.query(Role).filter_by(name=role_name).first()
-  if not role:
-    role = Role(name=role_name, description="Test Superadmin Role")
-    db_session.add(role)
-    db_session.commit()
 
   # Arrange: Create user data
   first_user_data = UserCreateSchema(
