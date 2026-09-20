@@ -106,19 +106,19 @@ test: $(MIGRATION_PREREQS) ## Run backend tests in Docker
 	docker compose exec backend python -m pytest tests -v
 	@echo "✅ Backend tests completed."
 
-test-unit: $(MIGRATION_PREREQS) ## Run backend unit tests in Docker
+test-unit: $(MIGRATION_PREREQS) ## Run backend unit tests in Docker no cache
 	@echo "▶ Running backend unit tests in Docker..."
-	docker compose exec backend python -m pytest tests/unit -v
+	docker compose exec backend python -m pytest tests/unit -v -p no:cacheprovider
 	@echo "✅ Backend unit tests completed."
 
 test-integration: $(MIGRATION_PREREQS) ## Run backend integration tests in Docker
 	@echo "▶ Running backend integration tests in Docker..."
-	docker compose exec backend python -m pytest tests/integration -v
+	docker compose exec backend python -m pytest tests/integration -v -p no:cacheprovider
 	@echo "✅ Backend integration tests completed."
 
 test-e2e: $(MIGRATION_PREREQS) ## Run backend end-to-end tests in Docker
 	@echo "▶ Running backend end-to-end tests in Docker..."
-	docker compose exec backend python -m pytest tests/e2e -v
+	docker compose exec backend python -m pytest tests/e2e -v -p no:cacheprovider
 	@echo "✅ Backend end-to-end tests completed."
 
 # --------------------------------------------------------------------

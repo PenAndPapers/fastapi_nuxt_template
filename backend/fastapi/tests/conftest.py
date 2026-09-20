@@ -1,7 +1,7 @@
 import os
 from collections.abc import Generator
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from dotenv import find_dotenv, load_dotenv
@@ -39,6 +39,11 @@ def db_session() -> Generator[Session, None, None]:
     session.close()
 
 
+@pytest.fixture
+def mock_db_session() -> MagicMock:
+  return MagicMock()
+
+
 @pytest.fixture()
 def client() -> Generator[TestClient, None, None]:
   with TestClient(app) as c:
@@ -53,6 +58,57 @@ def faker() -> Faker:
 # ---------------------------------------------------------------------------------------------------
 # Auth module related fixtures
 # ---------------------------------------------------------------------------------------------------
+@pytest.fixture
+def unit_mock_auth_repo() -> MagicMock:
+  return MagicMock()
+
+
+@pytest.fixture
+def unit_mock_device_repo() -> MagicMock:
+  return MagicMock()
+
+
+@pytest.fixture
+def unit_mock_user_repo() -> MagicMock:
+  return MagicMock()
+
+
+@pytest.fixture
+def unit_mock_user_role_repo() -> MagicMock:
+  return MagicMock()
+
+
+@pytest.fixture
+def unit_mock_jwt_service() -> MagicMock:
+  return MagicMock()
+
+
+@pytest.fixture
+def unit_mock_password_service() -> MagicMock:
+  return MagicMock()
+
+
+@pytest.fixture
+def unit_mock_auth_service(
+  mock_db_session: MagicMock,
+  unit_mock_auth_repo: MagicMock,
+  unit_mock_device_repo: MagicMock,
+  unit_mock_user_repo: MagicMock,
+  unit_mock_user_role_repo: MagicMock,
+  unit_mock_jwt_service: MagicMock,
+  unit_mock_password_service: MagicMock,
+) -> AuthService:
+  return AuthService(
+    db=mock_db_session,
+    repository=unit_mock_auth_repo,
+    device_repository=unit_mock_device_repo,
+    user_repository=unit_mock_user_repo,
+    user_role_repository=unit_mock_user_role_repo,
+    jwt_service=unit_mock_jwt_service,
+    password_service=unit_mock_password_service,
+  )
+
+
 @pytest.fixture
 def jwt_service(tmp_path: Path) -> JwtService:
   """Fixture to provide a properly configured JwtService with mock key files."""
