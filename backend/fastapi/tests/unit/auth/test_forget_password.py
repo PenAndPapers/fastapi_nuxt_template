@@ -134,7 +134,7 @@ def test_forget_password_user_not_found(
 
   result = auth_service.forget_password(forget_data)
 
-  assert result is None  # Should return True even if user not found for security
+  assert result is None  # Should return None if user not found
   mock_jwt_service.create_token.assert_not_called()
   mock_device_repo.store_device.assert_not_called()
   mock_auth_repo.store_token.assert_not_called()
