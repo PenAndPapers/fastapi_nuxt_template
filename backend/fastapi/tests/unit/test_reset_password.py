@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from api.modules.auth.exception import JwtInvalidTokenError
-from api.modules.auth.model import Auth
-from api.modules.auth.schema import AuthResetPasswordSchema, TokenType
+from api.modules.auth.model import AuthToken
+from api.modules.auth.schema import FormAuthResetPasswordSchema, TokenType
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
 
@@ -93,13 +93,13 @@ def test_reset_password_success(
 ) -> None:
   data = sample_data()
   # Arrange
-  payload = AuthResetPasswordSchema(
+  payload = FormAuthResetPasswordSchema(
     token=data["token"],
     new_password=data["new_password"],
     confirm_password=data["confirm_password"],
   )
 
-  mock_token = Auth(
+  mock_token = AuthToken(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
@@ -145,7 +145,7 @@ def test_reset_password_invalid_token(
   mock_auth_repo: MagicMock,
 ) -> None:
   data = sample_data()
-  payload = AuthResetPasswordSchema(
+  payload = FormAuthResetPasswordSchema(
     token=data["invalid_token"],
     new_password=data["new_password"],
     confirm_password=data["confirm_password"],
@@ -162,13 +162,13 @@ def test_reset_password_expired_token(
   mock_auth_repo: MagicMock,
 ) -> None:
   data = sample_data()
-  payload = AuthResetPasswordSchema(
+  payload = FormAuthResetPasswordSchema(
     token=data["token"],
     new_password=data["new_password"],
     confirm_password=data["confirm_password"],
   )
 
-  mock_token = Auth(
+  mock_token = AuthToken(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
@@ -185,13 +185,13 @@ def test_reset_password_wrong_token_type(
   mock_auth_repo: MagicMock,
 ) -> None:
   data = sample_data()
-  payload = AuthResetPasswordSchema(
+  payload = FormAuthResetPasswordSchema(
     token=data["token"],
     new_password=data["new_password"],
     confirm_password=data["confirm_password"],
   )
 
-  mock_token = Auth(
+  mock_token = AuthToken(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.ACCESS,
@@ -209,13 +209,13 @@ def test_reset_password_decode_failed(
   mock_jwt_service: MagicMock,
 ) -> None:
   data = sample_data()
-  payload = AuthResetPasswordSchema(
+  payload = FormAuthResetPasswordSchema(
     token=data["token"],
     new_password=data["new_password"],
     confirm_password=data["confirm_password"],
   )
 
-  mock_token = Auth(
+  mock_token = AuthToken(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
@@ -235,13 +235,13 @@ def test_reset_password_user_not_found(
   mock_user_repo: MagicMock,
 ) -> None:
   data = sample_data()
-  payload = AuthResetPasswordSchema(
+  payload = FormAuthResetPasswordSchema(
     token=data["token"],
     new_password=data["new_password"],
     confirm_password=data["confirm_password"],
   )
 
-  mock_token = Auth(
+  mock_token = AuthToken(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
@@ -262,13 +262,13 @@ def test_reset_password_mismatch_attributes(
   mock_user_repo: MagicMock,
 ) -> None:
   data = sample_data()
-  payload = AuthResetPasswordSchema(
+  payload = FormAuthResetPasswordSchema(
     token=data["token"],
     new_password=data["new_password"],
     confirm_password=data["confirm_password"],
   )
 
-  mock_token = Auth(
+  mock_token = AuthToken(
     id=1,
     token_hash=data["token"],
     token_type=TokenType.PASSWORD_UPDATE,
@@ -279,7 +279,7 @@ def test_reset_password_mismatch_attributes(
   mock_decoded_token = {
     "sub": "wrong_uuid",
     "family_id": "wrong_family",
-    "exp": (datetime.now()).timestamp(),
+    "exp": (datetime.now(UTC)).timestamp(),
   }
   mock_jwt_service.decode.return_value = mock_decoded_token
   mock_user = User(id=1, email=data["email"], uuid=data["uuid"])

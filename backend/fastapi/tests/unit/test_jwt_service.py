@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -6,7 +6,7 @@ import pytest
 
 from api.modules.auth.exception import JwtExpiredError, JwtInvalidTokenError
 from api.modules.auth.jwt.service import JwtService
-from api.modules.auth.schema import JwtPayload, TokenType
+from api.modules.auth.schema import JwtFormSchema, TokenType
 
 
 @pytest.fixture
@@ -36,12 +36,12 @@ def jwt_service(mock_settings: MagicMock) -> JwtService:
 
 
 @pytest.fixture
-def sample_payload() -> JwtPayload:
-  return JwtPayload(
+def sample_payload() -> JwtFormSchema:
+  return JwtFormSchema(
     token_type=TokenType.ACCESS,
-    exp=int((datetime.now() + timedelta(minutes=15)).timestamp()),
-    nbf=int(datetime.now().timestamp()),
-    iat=int(datetime.now().timestamp()),
+    exp=int((datetime.now(UTC) + timedelta(minutes=15)).timestamp()),
+    nbf=int(datetime.now(UTC).timestamp()),
+    iat=int(datetime.now(UTC).timestamp()),
     iss="test-issuer",
     aud="test-audience",
     sub=str(uuid4()),
@@ -80,7 +80,7 @@ def test_get_default_jwt_claims(jwt_service: JwtService) -> None:
   assert abs(claims["exp"] - expected_exp) < 5
 
 
-def test_encode_decode_success(jwt_service: JwtService, sample_payload: JwtPayload) -> None:
+def test_encode_decode_success(jwt_service: JwtService, sample_payload: JwtFormSchema) -> None:
   # We must mock jwt.encode and jwt.decode because we are using mock keys
   with patch("jwt.encode") as mock_encode, patch("jwt.decode") as mock_decode:
     mock_encode.return_value = "mocked.jwt.token"

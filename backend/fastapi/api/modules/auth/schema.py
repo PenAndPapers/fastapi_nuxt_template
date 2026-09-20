@@ -15,74 +15,15 @@ class TokenType(StrEnum):
   PASSWORD_UPDATE = "password_update"  # noqa: S105
 
 
-class GeneratedToken(BaseModel):
+class GeneratedTokenFormSchema(BaseModel):
+  """Schema for generated tokens from JWT service."""
+
   encoded: str
   exp: int
   family_id: str
 
 
-class TokenSchema(BaseModel):
-  token_hash: str = Field(..., description="Hashed token string.")
-  token_type: TokenType = Field(..., description="Token type.")
-  expires_at: datetime = Field(..., description="Expiration time as a datetime object.")
-  is_revoked: bool = Field(False, description="Is the token revoked?")
-  user_id: int = Field(..., description="User ID associated with the token.")
-  device_id: int = Field(..., description="Device ID associated with the token.")
-  family_id: str = Field(..., description="Family ID associated with the token.")
-
-  model_config = {"from_attributes": True}
-
-
-class SessionToken(BaseModel):
-  access_token: str = Field(..., description="Access token for API requests.")
-  access_exp: int = Field(
-    ..., description="Expiration time as a Unix epoch timestamp (seconds) for the access token."
-  )
-  refresh_token: str = Field(..., description="Refresh token for obtaining new access tokens.")
-  refresh_exp: int = Field(
-    ..., description="Expiration time as a Unix epoch timestamp (seconds) for the refresh token."
-  )
-
-  model_config = {"from_attributes": True}
-
-
-class DeviceSchema(BaseModel):
-  client_device_id: str = Field(
-    ..., description="Client device ID.", json_schema_extra={"example": "1234567890"}
-  )
-  device_type: str | None = Field(
-    None,
-    description="Device type (e.g., 'PC', 'Mobile', 'Tablet').",
-    json_schema_extra={"example": "Mobile"},
-  )
-  os: str | None = Field(
-    None,
-    description="Operating system (e.g., 'Windows', 'macOS', 'Linux').",
-    json_schema_extra={"example": "macOS"},
-  )
-  browser: str | None = Field(
-    None,
-    description="Browser (e.g., 'Chrome', 'Firefox', 'Safari').",
-    json_schema_extra={"example": "Chrome"},
-  )
-  ip_address: str | None = Field(
-    None, description="IP address (IPv4 or IPv6)", json_schema_extra={"example": "192.168.1.1"}
-  )
-  latitude: float | None = Field(
-    None,
-    description="Latitude of the user's location (if available)",
-    json_schema_extra={"example": 37.7749},
-  )
-  longitude: float | None = Field(
-    None,
-    description="Longitude of the user's location (if available)",
-    json_schema_extra={"example": 122.4194},
-  )
-
-  model_config = {"from_attributes": True}
-
-
-class JwtPayload(BaseModel):
+class JwtFormSchema(BaseModel):
   """
   Standardized JWT Payload schema following RFC 7519 specifications.
   Enforces required claims for stateless authentication and token rotation workflows.
@@ -143,16 +84,61 @@ class JwtPayload(BaseModel):
   model_config = {"from_attributes": True, "extra": "forbid", "use_enum_values": True}
 
 
-class SigningKeyResponse(BaseModel):
-  token: str
-  decoded: JwtPayload
+class TokenFormSchema(BaseModel):
+  """Schema for tokens in the database."""
+
+  token_hash: str = Field(..., description="Hashed token string.")
+  token_type: TokenType = Field(..., description="Token type.")
+  expires_at: datetime = Field(..., description="Expiration time as a datetime object.")
+  is_revoked: bool = Field(False, description="Is the token revoked?")
+  user_id: int = Field(..., description="User ID associated with the token.")
+  device_id: int = Field(..., description="Device ID associated with the token.")
+  family_id: str = Field(..., description="Family ID associated with the token.")
+
+  model_config = {"from_attributes": True}
 
 
-class AuthRegisterSchema(UserCreateSchema):
+class FormDeviceSchema(BaseModel):
+  client_device_id: str = Field(
+    ..., description="Client device ID.", json_schema_extra={"example": "1234567890"}
+  )
+  device_type: str | None = Field(
+    None,
+    description="Device type (e.g., 'PC', 'Mobile', 'Tablet').",
+    json_schema_extra={"example": "Mobile"},
+  )
+  os: str | None = Field(
+    None,
+    description="Operating system (e.g., 'Windows', 'macOS', 'Linux').",
+    json_schema_extra={"example": "macOS"},
+  )
+  browser: str | None = Field(
+    None,
+    description="Browser (e.g., 'Chrome', 'Firefox', 'Safari').",
+    json_schema_extra={"example": "Chrome"},
+  )
+  ip_address: str | None = Field(
+    None, description="IP address (IPv4 or IPv6)", json_schema_extra={"example": "192.168.1.1"}
+  )
+  latitude: float | None = Field(
+    None,
+    description="Latitude of the user's location (if available)",
+    json_schema_extra={"example": 37.7749},
+  )
+  longitude: float | None = Field(
+    None,
+    description="Longitude of the user's location (if available)",
+    json_schema_extra={"example": 122.4194},
+  )
+
+  model_config = {"from_attributes": True}
+
+
+class FormAuthRegisterSchema(UserCreateSchema):
   pass
 
 
-class AuthLoginSchema(BaseModel):
+class FormAuthLoginSchema(BaseModel):
   email: EmailStr = Field(
     ...,
     description="Email address",
@@ -167,14 +153,14 @@ class AuthLoginSchema(BaseModel):
   )
 
 
-class AuthForgetPasswordSchema(BaseModel):
+class FormAuthForgetPasswordSchema(BaseModel):
   email: EmailStr = Field(
     ..., description="Email address", json_schema_extra={"example": "johndoe@example.com"}
   )
-  device: DeviceSchema
+  device: FormDeviceSchema
 
 
-class AuthResetPasswordSchema(BaseModel):
+class FormAuthResetPasswordSchema(BaseModel):
   token: str = Field(
     ...,
     min_length=1,
@@ -202,3 +188,16 @@ class AuthResetPasswordSchema(BaseModel):
       raise ValueError("Passwords do not match")
 
     return self
+
+
+class SessionTokenResponseSchema(BaseModel):
+  access_token: str = Field(..., description="Access token for API requests.")
+  access_exp: int = Field(
+    ..., description="Expiration time as a Unix epoch timestamp (seconds) for the access token."
+  )
+  refresh_token: str = Field(..., description="Refresh token for obtaining new access tokens.")
+  refresh_exp: int = Field(
+    ..., description="Expiration time as a Unix epoch timestamp (seconds) for the refresh token."
+  )
+
+  model_config = {"from_attributes": True}

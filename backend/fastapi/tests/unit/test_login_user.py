@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from api.modules.auth.exception import InvalidCredentialsError
-from api.modules.auth.schema import AuthLoginSchema, SessionToken
+from api.modules.auth.schema import FormAuthLoginSchema, SessionTokenResponseSchema
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
 
@@ -90,7 +90,7 @@ def test_login_success(
 ) -> None:
   data = sample_data()
   # Arrange
-  login_data = AuthLoginSchema(email=data["email"], password=data["password"])
+  login_data = FormAuthLoginSchema(email=data["email"], password=data["password"])
   mock_user = User(id=1, email=data["email"], password=data["hashed_password"], uuid=data["uuid"])
   mock_user_repo.get_user_by_email.return_value = mock_user
   mock_password_service.verify_password.return_value = True
@@ -99,7 +99,7 @@ def test_login_success(
   result = auth_service.login(login_data)
 
   # Assert
-  assert isinstance(result, SessionToken)
+  assert isinstance(result, SessionTokenResponseSchema)
   assert str(result.access_token) == data["token_val"]
   mock_user_repo.get_user_by_email.assert_called_once_with(data["email"])
   mock_password_service.verify_password.assert_called_once_with(
@@ -116,7 +116,7 @@ def test_login_failed_invalid_password(
 ) -> None:
   data = sample_data()
   # Arrange
-  login_data = AuthLoginSchema(email=data["email"], password=data["invalid_password"])
+  login_data = FormAuthLoginSchema(email=data["email"], password=data["invalid_password"])
   mock_user = User(id=1, email=data["email"], password=data["hashed_password"], uuid=data["uuid"])
   mock_user_repo.get_user_by_email.return_value = mock_user
   mock_password_service.verify_password.return_value = False
@@ -133,7 +133,7 @@ def test_login_failed_user_not_found(
 ) -> None:
   data = sample_data()
   # Arrange
-  login_data = AuthLoginSchema(email=data["nonexistent_email"], password=data["password"])
+  login_data = FormAuthLoginSchema(email=data["nonexistent_email"], password=data["password"])
   mock_user_repo.get_user_by_email.return_value = None
 
   # Act & Assert

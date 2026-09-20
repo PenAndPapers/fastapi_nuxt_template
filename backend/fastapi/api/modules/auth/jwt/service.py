@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import jwt
@@ -6,7 +6,7 @@ import jwt
 from core.config import Settings
 
 from ..exception import JwtExpiredError, JwtInvalidTokenError
-from ..schema import GeneratedToken, JwtPayload, TokenType
+from ..schema import GeneratedTokenFormSchema, JwtFormSchema, TokenType
 
 settings = Settings()
 
@@ -50,36 +50,10 @@ class JwtService:
     return {
       "iss": self._jwt_issuer,
       "aud": self._jwt_audience,
-      "iat": int(datetime.now().timestamp()),
-      "nbf": int(datetime.now().timestamp()),
-      "exp": int(datetime.now().timestamp() + self.get_token_type_expiration(token_type)),
+      "iat": int(datetime.now(UTC).timestamp()),
+      "nbf": int(datetime.now(UTC).timestamp()),
+      "exp": int(datetime.now(UTC).timestamp() + self.get_token_type_expiration(token_type)),
     }
-
-  def create_token(self, token_type: TokenType, sub: str, family_id: str) -> GeneratedToken:
-    """Create a new JWT token.
-
-    Args:
-        token_type: The type of token to create.
-        sub: The subject identifier of the token.
-        family_id: The family identifier of the token family.
-
-    Returns:
-        tuple[str, int]: The created token and expiration time in seconds.
-    """
-
-    claims = self.get_default_jwt_claims(token_type)
-    claims.update(
-      {
-        "token_type": token_type.value,
-        "sub": sub,
-        "jti": self.get_token_jti(),
-        "family_id": family_id,
-      }
-    )
-
-    encoded = self.encode(JwtPayload(**claims))
-
-    return GeneratedToken(encoded=encoded, exp=claims["exp"], family_id=claims["family_id"])
 
   def get_token_type_expiration(self, token_type: TokenType) -> int:
     """Get the expiration time in seconds for a given token type.
@@ -102,7 +76,7 @@ class JwtService:
       case _:
         raise ValueError(f"Unknown token type: {token_type}")
 
-  def encode(self, payload: JwtPayload) -> str:
+  def encode(self, payload: JwtFormSchema) -> str:
     """Encode a payload dictionary or model into a signed JWT string.
 
     Args:
@@ -137,3 +111,33 @@ class JwtService:
     except jwt.InvalidTokenError as e:
       # Catch-all for malformed signatures, incorrect algorithms, or bad structures
       raise JwtInvalidTokenError("JWT invalid token") from e
+
+  def create_token(
+    self, token_type: TokenType, sub: str, family_id: str
+  ) -> GeneratedTokenFormSchema:
+    """Create a new JWT token.
+
+    Args:
+        token_type: The type of token to create.
+        sub: The subject identifier of the token.
+        family_id: The family identifier of the token family.
+
+    Returns:
+        tuple[str, int]: The created token and expiration time in seconds.
+    """
+
+    claims = self.get_default_jwt_claims(token_type)
+    claims.update(
+      {
+        "token_type": token_type.value,
+        "sub": sub,
+        "jti": self.get_token_jti(),
+        "family_id": family_id,
+      }
+    )
+
+    encoded = self.encode(JwtFormSchema(**claims))
+
+    return GeneratedTokenFormSchema(
+      encoded=str(encoded), exp=claims["exp"], family_id=claims["family_id"]
+    )
