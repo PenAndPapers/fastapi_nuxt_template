@@ -1,55 +1,14 @@
-from pathlib import Path
-from unittest.mock import patch
-
 import pytest
 from faker import Faker
 from sqlalchemy.orm import Session
 
-from api.modules.auth.jwt.service import JwtService
 from api.modules.auth.password.service import PasswordService
-from api.modules.auth.repository import AuthRepository, DeviceRepository
 from api.modules.auth.schema import FormAuthLoginSchema, SessionTokenResponseSchema
 from api.modules.auth.service import AuthService
 from api.modules.user.model import User
-from api.modules.user.repository import UserRepository, UserRoleRepository
-from core.config import get_settings
-
-settings = get_settings()
 
 
-@pytest.fixture
-def auth_service(
-  db_session: Session, tmp_path: Path, private_key_fixture: str, public_key_fixture: str
-) -> AuthService:
-  # 1. Create temporary PEM files in the test runner isolated directory
-  priv_file = tmp_path / "private_key.pem"
-  pub_file = tmp_path / "public_key.pem"
-  priv_file.write_text(private_key_fixture)
-  pub_file.write_text(public_key_fixture)
-
-  # 2. Import the settings instance specifically from the jwt service module
-  from api.modules.auth.jwt.service import settings
-
-  # 3. Patch the Path attributes ON THAT SETTINGS INSTANCE before JwtService() is called
-  with (
-    patch.object(settings, "private_key_path", priv_file),
-    patch.object(settings, "public_key_path", pub_file),
-  ):
-    # When JwtService runs, settings.private_key_path will point to priv_file
-    jwt_service = JwtService()
-
-    return AuthService(
-      db=db_session,
-      repository=AuthRepository(db_session),
-      device_repository=DeviceRepository(db_session),
-      user_repository=UserRepository(db_session),
-      user_role_repository=UserRoleRepository(db_session),
-      jwt_service=jwt_service,
-      password_service=PasswordService(),
-    )
-
-
-def sample_data(db_session: Session, faker: Faker) -> dict[str, str]:
+def _sample_data(db_session: Session, faker: Faker) -> dict[str, str]:
   session_id = hex(id(db_session))
 
   return {
@@ -66,14 +25,7 @@ def sample_data(db_session: Session, faker: Faker) -> dict[str, str]:
   }
 
 
-def test_login_success_integration(
-  auth_service: AuthService, db_session: Session, faker: Faker
-) -> None:
-  data = sample_data(db_session, faker)
-  # Arrange: Create a user in the DB first
-  password = data["password"]
-  hashed_pw = PasswordService().password_hash(password)
-
+def _create_user(data: dict[str, str], hashed_pw: str, db_session: Session) -> None:
   test_user = User(
     email=data["email"],
     password=hashed_pw,
@@ -85,6 +37,17 @@ def test_login_success_integration(
   )
   db_session.add(test_user)
   db_session.commit()
+
+
+def test_login_success_integration(
+  auth_service: AuthService, db_session: Session, faker: Faker
+) -> None:
+  data = _sample_data(db_session, faker)
+  # Arrange: Create a user in the DB first
+  password = data["password"]
+  hashed_pw = PasswordService().password_hash(password)
+
+  _create_user(data, hashed_pw, db_session)
 
   login_data = FormAuthLoginSchema(email=data["email"], password=password)
 
@@ -102,22 +65,12 @@ def test_login_success_integration(
 def test_login_failed_invalid_password_integration(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
-  data = sample_data(db_session, faker)
+  data = _sample_data(db_session, faker)
   # Arrange
   password = data["password"]
   hashed_pw = PasswordService().password_hash(password)
 
-  test_user = User(
-    email=data["email"],
-    password=hashed_pw,
-    uuid=data["uuid"],
-    first_name=data["first_name"],
-    last_name=data["last_name"],
-    address=data["address"],
-    phone_number=data["phone_number"],
-  )
-  db_session.add(test_user)
-  db_session.commit()
+  _create_user(data, hashed_pw, db_session)
 
   login_data = FormAuthLoginSchema(email=data["email"], password=data["invalid_password"])
 
@@ -131,22 +84,12 @@ def test_login_failed_invalid_password_integration(
 def test_login_failed_user_not_found_integration(
   auth_service: AuthService, db_session: Session, faker: Faker
 ) -> None:
-  data = sample_data(db_session, faker)
+  data = _sample_data(db_session, faker)
   # Arrange
   password = data["password"]
   hashed_pw = PasswordService().password_hash(password)
 
-  test_user = User(
-    email=data["email"],
-    password=hashed_pw,
-    uuid=data["uuid"],
-    first_name=data["first_name"],
-    last_name=data["last_name"],
-    address=data["address"],
-    phone_number=data["phone_number"],
-  )
-  db_session.add(test_user)
-  db_session.commit()
+  _create_user(data, hashed_pw, db_session)
 
   login_data = FormAuthLoginSchema(email=data["invalid_email"], password=data["password"])
 

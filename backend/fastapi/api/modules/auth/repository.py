@@ -29,6 +29,21 @@ class AuthRepository:
     query = select(self.model).where(self.model.id == token_id)
     return self.db.execute(query).scalar_one_or_none()
 
+  def get_user_latest_active_token_by_type(
+    self, user_id: PositiveInt, token_type: TokenType
+  ) -> AuthToken | None:
+    query = (
+      select(self.model)
+      .where(
+        (self.model.token_type == token_type)
+        & (self.model.user_id == user_id)
+        & (self.model.is_revoked == False)  # noqa E712
+      )
+      .order_by(self.model.expires_at.desc())
+    )
+
+    return self.db.execute(query).scalar_one_or_none()
+
   def get_user_active_tokens_by_type(
     self, user_id: PositiveInt, token_type: TokenType
   ) -> list[AuthToken]:

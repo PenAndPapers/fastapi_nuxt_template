@@ -95,7 +95,7 @@ class AuthService:
       refresh_exp=refresh_token.exp,
     )
 
-  def forget_password(self, user: FormAuthForgetPasswordSchema) -> bool:
+  def forget_password(self, user: FormAuthForgetPasswordSchema) -> bool | None:
     # TODO:
     # - rate limiting.
     # - send password reset link to user's email.
@@ -108,7 +108,7 @@ class AuthService:
     # Let frontned show message to check the email password update link
     # even if user does not exist
     if not db_user:
-      return True
+      return None
 
     forget_password_token = self.jwt_service.create_token(
       TokenType.PASSWORD_UPDATE, db_user.uuid, self.jwt_service.get_token_jti()
