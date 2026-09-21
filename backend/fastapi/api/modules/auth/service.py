@@ -1,6 +1,7 @@
 import logging
 from datetime import UTC, datetime
 
+from api.modules.auth.model import AuthToken
 from api.modules.user.model import User
 from api.modules.user.repository import UserRepository, UserRoleRepository
 from core.config import get_settings
@@ -177,20 +178,7 @@ class AuthService:
     token_hash = hash_token(str(payload.token))
     db_token = self.repository.get_token_by_hash(token_hash)
 
-    if (
-      not db_token
-      or db_token.is_revoked
-      or (
-        db_token.expires_at
-        and (
-          db_token.expires_at
-          if db_token.expires_at.tzinfo
-          else db_token.expires_at.replace(tzinfo=UTC)
-        )
-        < datetime.now(UTC)
-      )
-      or db_token.token_type != TokenType.PASSWORD_UPDATE
-    ):
+    if not self._is_valid_db_token(db_token, TokenType.PASSWORD_UPDATE):
       logger.error(
         f"\nToken does not exist, revoked, expired or not a password update token - {payload.token}\n"
       )
@@ -200,31 +188,45 @@ class AuthService:
     formatted_token = JwtFormSchema.model_validate(decoded_token, from_attributes=True)
     db_user = self.user_repository.get_user_by_uuid(formatted_token.sub)
 
-    if not db_user:
-      logger.error(f"Token is not associated with any user - {payload.token}")
+    if not self._is_valid_token_owner_and_family_id(db_user, formatted_token, db_token):
       raise JwtInvalidTokenError("Token is invalid or expired")
-
-    token_sub_match = formatted_token.sub == db_user.uuid
-    token_family_match = formatted_token.family_id == db_token.family_id
-
-    if not token_sub_match or not token_family_match:
-      logger.error(
-        f"Token is not associated with any user, family_id does not match or expired - {payload.token}"
-      )
-      raise JwtInvalidTokenError("Token is invalid or expired")
-
-    # Update user password
-    self.user_repository.update_password(
-      db_user.id, self.password_service.password_hash(payload.new_password)
-    )
-
-    # Revoke other password reset token that are related to the user
-    self.repository.revoke_user_active_tokens(db_user.id, TokenType.PASSWORD_UPDATE)
 
     # Single transaction for all operations
     try:
+      # Update user password
+      self.user_repository.update_password(
+        db_user.id, self.password_service.password_hash(payload.new_password)
+      )
+
+      # Revoke other password reset token that are related to the user
+      self.repository.revoke_user_active_tokens(db_user.id, TokenType.PASSWORD_UPDATE)
+
       self.db.commit()
       return True
     except Exception as e:
       self.db.rollback()
       raise e
+
+  def _is_valid_db_token(self, db_token: AuthToken | None, token_type: TokenType) -> bool:
+    """Check if the database token is valid."""
+    if not db_token or db_token.is_revoked or db_token.token_type != token_type:
+      return False
+
+    if db_token.expires_at:
+      expires_at = (
+        db_token.expires_at
+        if db_token.expires_at.tzinfo
+        else db_token.expires_at.replace(tzinfo=UTC)
+      )
+      return expires_at > datetime.now(UTC)
+    return True
+
+  def _is_valid_token_owner_and_family_id(
+    self, db_user: User | None, formatted_token: JwtFormSchema, db_token: AuthToken | None
+  ) -> bool:
+    """Check if the token owner and family_id match the database token attributes."""
+    return (
+      db_user
+      and formatted_token.sub == db_user.uuid
+      and formatted_token.family_id == db_token.family_id
+    )
