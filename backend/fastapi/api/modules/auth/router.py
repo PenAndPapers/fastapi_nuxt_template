@@ -2,6 +2,7 @@ from fastapi import APIRouter, status
 
 from api.modules.user.schema import UserCreateResponseSchema
 from core.schema import GenericResponseMessage
+from core.security.route_guard import RouteGuardDep
 
 from .dependency import AuthServiceDep
 from .schema import (
@@ -90,3 +91,8 @@ def verify_email() -> dict[str, str]:
   # This endpoint should handle user email verification, including validating input,
   # updating user's email status and returning success message.
   return {"message": "verify email endpoint"}
+
+
+@router.get("/test-route-guard", summary="Test route guard")
+def test_route_guard(current_user: RouteGuardDep) -> dict[str, str]:
+  return {"message": f"test route guard endpoint, user: {current_user.uuid}"}
