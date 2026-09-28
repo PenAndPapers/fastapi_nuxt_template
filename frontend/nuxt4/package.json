@@ -32,9 +32,9 @@
     "@primevue/nuxt-module": "^5.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "tailwindcss": "^4.3.3",
-    "eslint": "^10.10.0",
+    "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.0.1",
-    "prettier": "^3.9.8",
+    "prettier": "^3.9.9",
     "typescript": "^7.0.2",
     "vue-tsc": "^3.3.11"
   }
