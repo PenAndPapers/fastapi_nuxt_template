@@ -19,12 +19,12 @@
     "test:e2e:docker": "docker compose exec frontend pnpm run test:e2e"
   },
   "dependencies": {
-    "@pinia/nuxt": "^1.0.2",
+    "@pinia/nuxt": "^1.0.3",
     "axios": "^1.8.1",
     "nuxt": "^4.6.1",
-    "pinia": "^4.0.3",
+    "pinia": "^4.1.0",
     "primevue": "^5.0.2",
-    "vue": "^3.5.43",
+    "vue": "^3.5.44",
     "vue-router": "^5.4.0"
   },
   "devDependencies": {
@@ -34,8 +34,8 @@
     "tailwindcss": "^4.3.3",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.0.1",
-    "prettier": "^3.9.9",
+    "prettier": "^3.9.10",
     "typescript": "^7.0.2",
-    "vue-tsc": "^3.3.12"
+    "vue-tsc": "^3.3.13"
   }
 }
