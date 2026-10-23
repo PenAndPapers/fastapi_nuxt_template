@@ -89,6 +89,44 @@ class AuthService:
     access_token = self.jwt_service.create_token(TokenType.ACCESS, db_user.uuid, family_id)
     refresh_token = self.jwt_service.create_token(TokenType.REFRESH, db_user.uuid, family_id)
 
+    # test device
+    device_to_store = FormDeviceSchema(
+      client_device_id="99999999999",
+      device_type="web",
+      os="chrome",
+      browser="chrome",
+      ip_address="127.0.0.1",
+      latitude=0,
+      longitude=0,
+    )
+
+    # Store device token in database
+    db_device = self.device_repository.store_device(
+      device_to_store,
+      user_id=db_user.id,
+    )
+    self.db.flush()
+
+    for token_type in [TokenType.ACCESS, TokenType.REFRESH]:
+      token_to_store = TokenFormSchema(
+        token_hash=hash_token(
+          str(access_token.encoded if token_type == TokenType.ACCESS else refresh_token.encoded)
+        ),
+        token_type=token_type,
+        expires_at=access_token.exp if token_type == TokenType.ACCESS else refresh_token.exp,
+        family_id=family_id,
+        is_revoked=False,
+        user_id=db_user.id,
+        device_id=db_device.id,
+      )
+      self.repository.store_token(token_to_store)
+
+    try:
+      self.db.commit()
+    except Exception as e:
+      self.db.rollback()
+      raise e
+
     return SessionTokenResponseSchema(
       access_token=str(access_token.encoded),
       access_exp=access_token.exp,

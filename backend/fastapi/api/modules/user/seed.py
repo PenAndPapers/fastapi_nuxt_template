@@ -103,15 +103,15 @@ def seed_rbac_data(db: Session) -> None:
     {"email": "user@example.com", "username": "user", "role": EnumUserRole.USER.value},
   ]
 
+  hashed_pw = pw_service.password_hash("P@ssw0rd#123")
   for u_data in users_to_create:
     user = db.query(User).filter_by(email=u_data["email"]).first()
-    hashed_pw = pw_service.password_hash("password123")
     if not user:
       user = User(
         email=u_data["email"],
         password=hashed_pw,
         first_name=u_data["username"].title(),
-        last_name="Sample",
+        last_name="Sample-user",
       )
       db.add(user)
       db.flush()
