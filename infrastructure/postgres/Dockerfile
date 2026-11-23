@@ -1,4 +1,4 @@
-FROM postgres:18-alpine
+FROM postgres:19-alpine
 
 # Set secure defaults for PostgreSQL
 ENV POSTGRES_INITDB_ARGS="-c max_connections=200 -c shared_buffers=256MB"
